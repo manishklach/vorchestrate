@@ -128,7 +128,7 @@ python examples/render_trace_report.py
 
 ## Visualizing Controller Behavior
 
-The controller simulation can also be rendered into a small visual report. This is a prototype visibility path for synthetic traces, designed to make the policy easier to inspect without implying real-model telemetry or hardware benchmark output.
+The controller simulation can be rendered into a small visual report. This is a prototype visibility path for synthetic traces, designed to make the policy easier to inspect without implying real-model telemetry or hardware benchmark output.
 
 Run the simulation first, then render the plots:
 
@@ -142,16 +142,28 @@ By default this writes:
 - synthetic traces under `benchmarks/results/simulated_trace/`
 - plots under `examples/output/simulated_trace_report/`
 
-The generated report currently includes:
+### Sample output from synthetic simulation
 
-- `action_counts.png`
-- `score_over_time.png`
-- `state_timeline.png`
-- `pressure_over_time.png`
+The following plots are generated from the deterministic synthetic trace included in the repository. They show controller behavior on structured block descriptors — not real-model telemetry.
 
-This flow is the fastest way to make controller behavior tangible today: you can inspect action distribution, score evolution, synthetic HBM pressure, and how residency-managed units move across `S0`–`S6`.
+**State timeline** — how residency-managed units move across `S0`–`S6` over simulation steps:
+
+![Synthetic Residency State Timeline](docs/images/state_timeline.png)
+
+**Score evolution** — average composite controller score over time:
+
+![Average Controller Score Over Time](docs/images/score_over_time.png)
+
+**Action distribution** — how often the controller issued each action type:
+
+![Synthetic Controller Action Counts](docs/images/action_counts.png)
+
+**HBM pressure** — synthetic memory pressure signal driving controller decisions:
+
+![Synthetic HBM Pressure Over Time](docs/images/pressure_over_time.png)
 
 See [docs/visualization.md](docs/visualization.md) for plot meanings, trace assumptions, and interpretation limits.
+
 
 ### Target integration shape
 
