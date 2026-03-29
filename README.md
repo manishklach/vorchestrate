@@ -172,7 +172,7 @@ pip install -e .[dev]
 
 This library implements methods described in Indian Patent Application **IN 202641039064** — *System and Method for Predictive Multi-Tier Weight Residency and Precision Orchestration for Neural-Network Inference* — filed 29 March 2026.
 
-The open-source implementation is released under Apache 2.0. Commercial licensing available — contact `mlachwani@gmail.com`
+The open-source implementation is released under Apache 2.0. Commercial licensing available — contact `manishklach@gmail.com`
 
 ---
 
