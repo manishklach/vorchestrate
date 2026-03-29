@@ -52,4 +52,11 @@ Generated files include:
 - `state_timeline.png`
 - `pressure_over_time.png`
 
+What you will learn from these plots:
+
+- which actions dominate a given synthetic scenario
+- how average controller scores evolve over time
+- how residency-managed units move across `S0`–`S6`
+- how the synthetic HBM pressure signal relates to controller activity
+
 These figures are synthetic controller-simulation output. They are meant to make policy behavior easier to inspect, not to stand in for real-model telemetry or benchmark evidence.

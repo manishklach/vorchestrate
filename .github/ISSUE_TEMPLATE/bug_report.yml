@@ -1,0 +1,61 @@
+name: Bug report
+description: Report a reproducible issue in the controller scaffold, simulation path, or documentation.
+title: "[bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve vOrchestrate. Please focus on issues that can be reproduced from the current prototype scaffold.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the problem clearly and concisely.
+      placeholder: The synthetic controller simulation emits a malformed trace when...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: List the steps, commands, or inputs needed to reproduce the issue.
+      placeholder: |
+        1. Run `python examples/simulated_trace.py`
+        2. Run `python examples/render_trace_report.py`
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should have happened instead?
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Windows 11 / Ubuntu 24.04 / macOS 15
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.11"
+  - type: input
+    id: pytorch
+    attributes:
+      label: PyTorch version
+      placeholder: "2.3"
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      placeholder: CPU only / RTX 4090 / A100 80GB
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include logs, traces, screenshots, or related notes if useful.

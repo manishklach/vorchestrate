@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation and architecture references
+    url: https://github.com/manishklach/vorchestrate/tree/main/docs
+    about: Review the architecture, benchmark plan, visualization notes, and API overview before opening a design-oriented issue.

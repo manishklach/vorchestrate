@@ -46,6 +46,10 @@ Metadata record used to simulate a residency-managed unit without implying real-
 
 Runs the synthetic controller simulation and returns events, metrics, and score snapshots.
 
+### `render_trace_report()`
+
+Consumes a JSON or CSV synthetic trace and writes a compact visualization report with action counts, score trends, state timelines, and synthetic HBM pressure plots.
+
 ## Integration Surface
 
 ### `ResidencyAdapter`

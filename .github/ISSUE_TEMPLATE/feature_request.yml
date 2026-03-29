@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an improvement to the controller scaffold, integration surface, tooling, or validation path.
+title: "[feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        vOrchestrate is an early prototype. Suggestions that improve controller visibility, correctness, instrumentation, or validation are especially helpful.
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem or use case would this improve?
+      placeholder: It would be useful to compare two synthetic controller policies side by side because...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: Describe the design direction, capability, or experiment you want to add.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Primary scope
+      options:
+        - Controller logic
+        - Integration surface
+        - Instrumentation
+        - Benchmarking
+        - Documentation
+        - Developer experience
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Include papers, benchmarks, prior art, or adjacent systems if helpful.

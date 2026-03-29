@@ -126,9 +126,9 @@ To render simple plots from the synthetic trace output:
 python examples/render_trace_report.py
 ```
 
-## Synthetic Trace Visualization
+## Visualizing Controller Behavior
 
-The controller simulation can also be rendered into a small visual report. This is a prototype visibility path for synthetic traces, designed to make the policy easier to inspect without implying real-model telemetry.
+The controller simulation can also be rendered into a small visual report. This is a prototype visibility path for synthetic traces, designed to make the policy easier to inspect without implying real-model telemetry or hardware benchmark output.
 
 Run the simulation first, then render the plots:
 
@@ -149,7 +149,9 @@ The generated report currently includes:
 - `state_timeline.png`
 - `pressure_over_time.png`
 
-See [docs/visualization.md](docs/visualization.md) for plot meanings and interpretation limits.
+This flow is the fastest way to make controller behavior tangible today: you can inspect action distribution, score evolution, synthetic HBM pressure, and how residency-managed units move across `S0`–`S6`.
+
+See [docs/visualization.md](docs/visualization.md) for plot meanings, trace assumptions, and interpretation limits.
 
 ### Target integration shape
 
