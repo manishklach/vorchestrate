@@ -2,6 +2,10 @@
 
 This directory currently contains an early benchmark scaffold, not a published benchmark suite.
 
+## Current Benchmark Scope
+
+Today the benchmark path is centered on controller simulation and artifact generation. That makes it useful for checking policy behavior and trace structure before real-model measurement begins.
+
 ## What The Scaffold Does Today
 
 - runs a synthetic controller simulation
@@ -26,4 +30,4 @@ This directory currently contains an early benchmark scaffold, not a published b
 - latency or throughput
 - a quality proxy such as perplexity delta
 
-See [../docs/benchmark_plan.md](../docs/benchmark_plan.md) for the staged methodology.
+See [../docs/benchmark_plan.md](../docs/benchmark_plan.md) for the staged validation path.

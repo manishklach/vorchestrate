@@ -1,4 +1,4 @@
-"""Synthetic benchmark scaffold for early controller measurements."""
+"""Synthetic benchmark scaffold for early controller-side measurements."""
 
 from __future__ import annotations
 

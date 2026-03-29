@@ -1,10 +1,10 @@
 # Limitations
 
-This repository is intentionally transparent about current scope.
+This repository is intentionally clear about current scope.
 
 ## Prototype Scope
 
-vOrchestrate is a prototype control plane. It is not yet a production runtime for orchestrating arbitrary large-model deployments.
+vOrchestrate is a prototype control plane. It is not yet a production runtime for arbitrary large-model deployments, but it does establish a concrete architecture for reasoning about dynamic residency decisions.
 
 ## No Production Claim
 
@@ -29,7 +29,7 @@ The examples are designed to exercise the controller honestly:
 - MoE-style metadata example
 - synthetic controller simulation
 
-They are illustrative and useful, but they are not broad deployment proof.
+They are useful for inspecting controller behavior, but they are not broad deployment proof.
 
 ## Validation Gaps
 
@@ -39,3 +39,5 @@ Still missing:
 - stronger memory instrumentation on live model runs
 - broader quality-evaluation evidence
 - mature backends for actual movement across tiers
+
+These limitations are a boundary on current claims, not a statement that the controller architecture lacks value.

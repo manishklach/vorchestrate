@@ -1,4 +1,4 @@
-"""Controller simulation using synthetic block descriptors."""
+"""Controller simulation entry point using synthetic block descriptors."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parents[1] / "benchmarks" / "resul
 
 
 def main() -> None:
-    """Run a deterministic controller simulation and print a summary."""
+    """Run a deterministic controller simulation and print a compact summary."""
     config = SimulationConfig(output_dir=str(DEFAULT_OUTPUT_DIR))
     result = run_controller_simulation(config=config)
 

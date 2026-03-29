@@ -1,6 +1,6 @@
 # Roadmap
 
-The roadmap is organized around progressive validation rather than headline claims.
+The roadmap is organized around progressive validation rather than isolated feature drops.
 
 ## Phase 0: Controller Skeleton
 
@@ -46,3 +46,5 @@ Longer-term direction:
 - richer tier backends
 - policy comparison studies
 - reproducible benchmark reports
+
+Each phase is intended to leave behind artifacts that the next phase can build on: traces, counters, benchmark harnesses, validation notes, and eventually real-model studies.

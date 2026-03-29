@@ -1,10 +1,10 @@
 # Benchmark Plan
 
-This document describes how vOrchestrate should be benchmarked in a way that is useful and believable.
+This document describes how vOrchestrate should be benchmarked in a way that is methodical, comparable, and publishable.
 
 ## Benchmark Goals
 
-The benchmark path should answer a few concrete questions:
+The benchmark path should answer a small set of concrete systems questions:
 
 - can the controller reduce peak GPU memory pressure relative to baseline?
 - what host-memory or storage traffic does that introduce?
@@ -14,7 +14,7 @@ The benchmark path should answer a few concrete questions:
 
 ## Metrics To Measure
 
-For real-model benchmarks, the target metrics include:
+For real-model benchmarks, the primary metrics should include:
 
 - peak GPU memory
 - host memory
@@ -32,14 +32,14 @@ Examples of a quality proxy:
 
 ## Baseline Comparisons
 
-Every published benchmark should identify its baseline clearly. The intended comparison set is:
+Every benchmark report should identify its baseline clearly. The intended comparison set is:
 
 1. no orchestration
 2. static quantized setup
 3. naive offload
 4. controller-driven strategy
 
-Not every experiment must include every baseline immediately, but the full benchmark story should eventually cover them.
+Not every experiment needs all four baselines immediately, but the validation path should converge toward that comparison set.
 
 ## Reproducibility Rules
 
@@ -76,7 +76,7 @@ Move next to one or more small real models to validate:
 
 ### Phase C: Larger Models
 
-Only after the above is stable:
+Only after the earlier phases are stable:
 
 - expand to larger-model experiments
 - compare multiple policy settings
@@ -84,4 +84,4 @@ Only after the above is stable:
 
 ## Current State
 
-The current repo supports Phase A best. Phase B and Phase C are still future work.
+The current repository supports Phase A best. Phase B and Phase C define the near-term validation path.

@@ -9,16 +9,18 @@ Status: Early prototype / research implementation
 [![Status](https://img.shields.io/badge/status-early%20prototype-blue.svg)](#current-status)
 [![Patent](https://img.shields.io/badge/patent-IN%20202641039064-orange.svg)]()
 
-vOrchestrate is a serious early systems prototype for dynamic multi-tier weight residency orchestration. The current repository focuses on control-plane logic: metadata tracking, scoring, guardrails, state transitions, synthetic controller simulation, and initial integration surfaces for future runtime work.
+vOrchestrate is an early systems prototype for dynamic multi-tier weight residency orchestration. The current repository focuses on controller logic: metadata tracking, scoring, guardrail-aware demotion, state transitions, controller simulation, and the integration surfaces needed for richer runtime experiments.
 
 ## Current Status
 
-This repository should be read as an early prototype and reference implementation.
+This repository is best read as a reference implementation of the controller architecture.
 
 - it demonstrates controller structure, residency metadata tracking, scoring logic, guardrails, state transitions, and orchestration scaffolding
-- it now includes a synthetic controller simulation path that exercises the policy on structured block descriptors rather than pretending full real-model support
+- it includes a controller simulation path that exercises the policy on synthetic block descriptors rather than implying broad real-model support
 - large-model validation and reproducible benchmarks are still in progress
 - the runnable examples are illustrative prototype paths, not end-to-end proof of production readiness
+
+The long-term direction is broader than the current scaffold: tighter adapter integration, real movement backends, and validated studies of memory, latency, and quality tradeoffs on real models.
 
 ## Problem
 
@@ -30,11 +32,11 @@ The usual alternatives each come with tradeoffs:
 - naive offload can extend capacity, but often at a significant transfer or latency cost
 - overprovisioned GPU memory simplifies deployment, but is not always available or cost-efficient
 
-vOrchestrate explores a dynamic controller-based alternative: score blocks continuously, keep the valuable ones near compute, and stage colder ones to the right tier at the right time.
+vOrchestrate explores a controller-centric alternative: score blocks continuously, keep the valuable ones near compute, and stage colder ones to the right tier at the right time. That matters because memory hierarchy pressure is becoming a first-order systems constraint in large-model serving.
 
 ## Controller Model
 
-The current prototype implements a controller model with:
+The current codebase centers on a controller model with:
 
 - per-block metadata
 - a composite residency score
@@ -58,7 +60,7 @@ Where:
 - `δ(b)` is decompression cost
 - `τ(b)` is transfer cost
 
-The current code captures the policy shape, transitions, and control-plane logic. Future work includes richer movement backends, stronger instrumentation, and fuller model integrations.
+The current code captures the policy shape, transitions, and control-plane logic. It is intended as a foundation for richer movement backends, stronger instrumentation, adapter-backed experiments, and eventually validated memory and quality tradeoff studies.
 
 The controller currently reasons about a seven-state model:
 
@@ -89,25 +91,25 @@ The controller currently reasons about a seven-state model:
 
 ## What Is Not Complete Yet
 
-Several important pieces are intentionally not overstated:
+Some important pieces are still ahead of the current implementation:
 
 - there is no published large-model benchmark suite yet
 - there is no broad proof of quality parity yet
 - there is no universal Hugging Face support claim
-- current examples are still small or illustrative
+- current examples are intentionally small and inspectable
 - the current repository should be read as a serious prototype, not finished production infrastructure
 
 ## Quick Start
 
 ### Runnable local example
 
-The most truthful starting point today is the synthetic controller simulation:
+The fastest way to inspect controller behavior today is to run the synthetic trace simulation:
 
 ```bash
 python examples/simulated_trace.py
 ```
 
-That example constructs deterministic synthetic block descriptors, runs them through the existing scoring, guardrail, state-machine, and scheduling path, and writes trace artifacts.
+That path constructs deterministic synthetic block descriptors, runs them through the existing scoring, guardrail, state-machine, and scheduling path, and writes trace artifacts you can inspect directly.
 
 You can also run the smaller toy wrapper example:
 
@@ -117,7 +119,7 @@ python examples/basic_usage.py
 
 ### Target integration shape
 
-The repository also contains an illustrative integration shape for transformer-style models:
+The repository also includes an illustrative integration shape for transformer-style model wrapping:
 
 ```python
 from transformers import AutoModelForCausalLM
@@ -133,7 +135,7 @@ model = VOrchestrate(
 )
 ```
 
-This should be read as a target integration surface, not as a broadly validated claim of support for arbitrary real-world model stacks.
+This should be read as a target integration surface, not as a broadly validated claim of support for arbitrary model stacks.
 
 ## Architecture
 
@@ -147,7 +149,7 @@ Inference Engine
     -> HBM / DRAM / NVMe tiers
 ```
 
-See [docs/architecture.md](docs/architecture.md) for the fuller controller explanation and embedded Mermaid diagram.
+See [docs/architecture.md](docs/architecture.md) for the fuller controller explanation and the Mermaid architecture diagram.
 
 ## Repository Layout
 
@@ -163,7 +165,7 @@ tests                      pragmatic pytest coverage for core logic and prototyp
 
 ## Benchmarks
 
-The benchmark path is being built in a staged, credible way rather than through fabricated results.
+The benchmark path is being built in a staged way, with synthetic traces first and real-model validation later.
 
 See [docs/benchmark_plan.md](docs/benchmark_plan.md) for the methodology.
 
@@ -186,6 +188,10 @@ Immediate roadmap items:
 - richer documentation
 
 The phased roadmap is described in [docs/roadmap.md](docs/roadmap.md).
+
+## Project Trajectory
+
+Today the repository exposes controller logic, simulation, traces, and an early benchmark scaffold. The next step is adapter-backed experimentation and stronger instrumentation. The longer arc is toward validated runtime studies on real models, with more capable movement backends and clearer measurements of HBM pressure, latency, and quality tradeoffs.
 
 ## Contributing
 

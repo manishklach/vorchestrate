@@ -1,6 +1,10 @@
 # Examples
 
-The examples in this repository are deliberately honest about scope. They are useful for exercising the controller logic and illustrating intended integration shape, but they should not be read as proof of production maturity.
+The examples in this repository are designed to make the current controller scaffold easy to inspect. They exercise the logic honestly without implying broader runtime maturity than the code supports.
+
+## Start Here
+
+If you want the clearest picture of controller behavior today, start with `simulated_trace.py`. It shows how synthetic block descriptors move through scoring, guardrail-aware demotion, staging, and trace capture.
 
 ## `basic_usage.py`
 
@@ -28,4 +32,4 @@ These examples are prototype exercises:
 - `moe_usage.py` is a metadata-level policy demonstration
 - `simulated_trace.py` is the clearest truthful example of the current controller behavior
 
-They are not a substitute for broader integration validation or benchmark-backed performance claims.
+They are not a substitute for broader integration validation or benchmark-backed claims.
