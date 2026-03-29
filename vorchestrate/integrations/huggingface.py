@@ -9,7 +9,13 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple
 import torch
 from torch import nn
 
-from ..core import AccuracyGuardrail, ScoringEngine, WeightBlockRegistry, WeightStateMachine
+from ..core import (
+    AccuracyGuardrail,
+    PrefetchScheduler,
+    ScoringEngine,
+    WeightBlockRegistry,
+    WeightStateMachine,
+)
 
 LOGGER = logging.getLogger(__name__)
 

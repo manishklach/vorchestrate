@@ -1,0 +1,20 @@
+flowchart LR
+    IE["Inference Engine<br/>Transformer-style forward path"]
+    REG["Telemetry / Registry<br/>WeightBlockRegistry"]
+    SCORE["Scoring Engine<br/>Composite block score R(b)"]
+    GRD["Accuracy Guardrail<br/>Sensitivity-aware demotion veto"]
+    SM["State Machine<br/>Target-state selection and hysteresis"]
+    SCH["Scheduler / Prefetch<br/>Queueing and bandwidth-aware throttling"]
+    HBM["HBM / GPU"]
+    DRAM["Host DRAM / CXL-like tier"]
+    NVME["NVMe / SSD"]
+
+    IE -->|"layer access events"| REG
+    REG -->|"block metadata"| SCORE
+    SCORE -->|"score + ranking"| SM
+    REG -->|"sensitivity and state"| GRD
+    GRD -->|"allow / veto"| SM
+    SM -->|"promotion or demotion commands"| SCH
+    SCH --> HBM
+    SCH --> DRAM
+    SCH --> NVME
