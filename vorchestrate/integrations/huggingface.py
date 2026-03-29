@@ -26,6 +26,9 @@ class VOrchestrate(nn.Module):
         model: nn.Module,
         hbm_budget_gb: float = DEFAULT_HBM_BUDGET_GB,
         tick_interval_layers: int = DEFAULT_TICK_INTERVAL_LAYERS,
+        psi_threshold: float = 0.7,
+        tick_every_n_layers: int | None = None,
+        enable_prefetch: bool = True,
     ) -> None:
         """Initialize the orchestration wrapper.
 
@@ -33,7 +36,12 @@ class VOrchestrate(nn.Module):
             model: Wrapped Hugging Face style model.
             hbm_budget_gb: Effective HBM budget in gigabytes.
             tick_interval_layers: Number of layer invocations per control tick.
+            psi_threshold: Sensitivity threshold for the accuracy guardrail.
+            tick_every_n_layers: Backward-compatible alias for tick interval.
+            enable_prefetch: Whether to create the async prefetch scheduler.
         """
+        if tick_every_n_layers is not None:
+            tick_interval_layers = tick_every_n_layers
         super().__init__()
         if tick_interval_layers <= 0:
             raise ValueError("tick_interval_layers must be positive")
@@ -42,9 +50,15 @@ class VOrchestrate(nn.Module):
         self.hbm_budget_bytes = int(hbm_budget_gb * BYTES_PER_GB)
         self.tick_interval_layers = tick_interval_layers
         self.registry = WeightBlockRegistry(hbm_capacity_bytes=self.hbm_budget_bytes)
-        self.guardrail = AccuracyGuardrail()
+        self.guardrail = AccuracyGuardrail(psi_threshold=psi_threshold)
         self.scorer = ScoringEngine(self.registry)
-        self.state_machine = WeightStateMachine(self.registry, self.scorer, self.guardrail)
+        self.scheduler = PrefetchScheduler(self.registry) if enable_prefetch else None
+        self.state_machine = WeightStateMachine(
+            self.registry,
+            self.scorer,
+            self.guardrail,
+            scheduler=self.scheduler,
+        )
         self._step = 0
         self._layer_calls = 0
         self._registered_layers: Dict[str, str] = {}
@@ -57,6 +71,11 @@ class VOrchestrate(nn.Module):
     def forward(self, *args: Any, **kwargs: Any) -> Any:
         """Delegate execution to the wrapped model."""
         return self.model(*args, **kwargs)
+
+    def shutdown(self) -> None:
+        """Release scheduler resources if prefetching is enabled."""
+        if self.scheduler is not None:
+            self.scheduler.shutdown()
 
     def __getattr__(self, name: str) -> Any:
         """Delegate unknown attributes to the wrapped model."""

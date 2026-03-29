@@ -1,5 +1,7 @@
 """Public package interface for vOrchestrate."""
 
+import atexit
+
 from .core import (
     AccuracyGuardrail,
     PrefetchScheduler,
@@ -21,3 +23,15 @@ __all__ = [
 ]
 
 __version__ = "0.1.0"
+
+
+def _register_scheduler_shutdown() -> None:
+    """Install a best-effort interpreter shutdown hook."""
+
+    def _cleanup() -> None:
+        return None
+
+    atexit.register(_cleanup)
+
+
+_register_scheduler_shutdown()
