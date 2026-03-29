@@ -1,23 +1,23 @@
 # Design Principles
 
-These principles explain how the project is intended to evolve.
+These principles guide the project as it grows from controller prototype toward stronger validation.
 
 ## Graceful Degradation Before Quality Collapse
 
-The controller should prefer strategies that reduce throughput or increase staging overhead before it sacrifices clearly quality-sensitive blocks. This is the reason the guardrail exists at all.
+When memory pressure increases, the controller should prefer policies that preserve obviously sensitive units where possible, even if that means some throughput or staging cost.
 
-## Dynamic Rather Than Static Residency
+## Dynamic Residency Over Static Residency
 
-Different blocks matter at different times. The policy model assumes that keeping everything fixed in HBM or forcing everything through a single static precision regime leaves performance on the table.
+Residency is treated as a policy decision, not a one-time compile-time choice. The controller should adapt as access behavior changes.
 
-## Policy Transparency
+## Guardrail-Aware Demotion
 
-A controller like this should be inspectable. Scores, transitions, guardrail vetoes, queue behavior, and pressure estimates should be legible to an engineer reading traces or logs.
+Demotion decisions should be aware of quality sensitivity. The guardrail exists to make that constraint explicit rather than hiding it inside opaque heuristics.
 
 ## Observability First
 
-Before optimizing kernels, the project should make it easy to see what the controller is deciding and why. Better traces and measurement infrastructure are part of the architecture, not just a debugging convenience.
+Scores, transitions, trace events, queue activity, and controller counters should be visible. Better traces are part of the architecture, not just debugging extras.
 
-## Prototype Honesty
+## Transparent Policy Over Opaque Heuristics
 
-The project should be ambitious without overstating what has been proven. The right way to build credibility is to document what exists, what is modeled, and what still needs real validation.
+The repo should make policy terms, states, and decisions inspectable. Even when heuristics are used, they should remain legible enough to critique and improve.

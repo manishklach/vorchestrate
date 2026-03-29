@@ -2,39 +2,47 @@
 
 > Dynamic weight residency orchestration for LLM inference across HBM, DRAM, and NVMe.
 
-[![Status](https://img.shields.io/badge/status-early%20prototype-blue)](#current-status)
+Status: Early prototype / research implementation
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10+-green.svg)](setup.py)
+[![Status](https://img.shields.io/badge/status-early%20prototype-blue.svg)](#current-status)
 [![Patent](https://img.shields.io/badge/patent-IN%20202641039064-orange.svg)]()
 
-vOrchestrate is an early runtime prototype and reference implementation for dynamic multi-tier weight residency and precision control during transformer inference. The repo is aimed at researchers, systems engineers, and infrastructure practitioners who care about memory hierarchy, offload policy, and inference-time control planes.
+vOrchestrate is a serious early systems prototype for dynamic multi-tier weight residency orchestration. The current repository focuses on control-plane logic: metadata tracking, scoring, guardrails, state transitions, synthetic controller simulation, and initial integration surfaces for future runtime work.
 
 ## Current Status
 
-`Status: early prototype / research implementation`
+This repository should be read as an early prototype and reference implementation.
 
-The current repository demonstrates the controller shape rather than a finished production runtime.
-
-- It implements the core control-plane concepts: block metadata tracking, block scoring, state transitions, guardrail logic, and scheduler scaffolding.
-- It includes a CPU-testable reference implementation of the policy logic and small illustrative examples.
-- It does not yet provide published large-model benchmark results or rigorous evidence of quality parity under aggressive demotion.
-- The current examples are useful for understanding the orchestration model, but they should not be read as definitive end-to-end performance validation.
+- it demonstrates controller structure, residency metadata tracking, scoring logic, guardrails, state transitions, and orchestration scaffolding
+- it now includes a synthetic controller simulation path that exercises the policy on structured block descriptors rather than pretending full real-model support
+- large-model validation and reproducible benchmarks are still in progress
+- the runnable examples are illustrative prototype paths, not end-to-end proof of production readiness
 
 ## Problem
 
-Large language models are constrained by limited high-bandwidth GPU memory. In practice, deployment choices often collapse into a few imperfect options:
+For many large-model inference setups, HBM is the tightest memory tier in the system. A static residency policy can waste scarce device memory by keeping blocks resident long after their useful window has passed, while other blocks are fetched too late or demoted too aggressively.
 
-- keep more of the model in HBM and pay for larger GPUs
-- use static quantization everywhere, including blocks that may be quality-sensitive
-- rely on naive CPU or storage offload paths that are simple but latency-heavy
+The usual alternatives each come with tradeoffs:
 
-vOrchestrate explores a dynamic alternative: move the right blocks to the right memory tiers at the right time, based on observed reuse, estimated routing behavior, quality sensitivity, and transfer or decompression cost.
+- static quantization can be effective, but it treats many blocks uniformly even when quality sensitivity is uneven
+- naive offload can extend capacity, but often at a significant transfer or latency cost
+- overprovisioned GPU memory simplifies deployment, but is not always available or cost-efficient
 
-## Core Idea
+vOrchestrate explores a dynamic controller-based alternative: score blocks continuously, keep the valuable ones near compute, and stage colder ones to the right tier at the right time.
 
-The prototype models each weight block as a policy object with both a residency state and a precision or storage state. The controller can then reason about which blocks deserve scarce HBM capacity and which blocks can be staged in DRAM or NVMe until they are likely to be needed again.
+## Controller Model
 
-The current implementation uses the following composite score:
+The current prototype implements a controller model with:
+
+- per-block metadata
+- a composite residency score
+- a seven-state residency ladder
+- guardrail-aware transitions
+- an orchestration or prefetch scaffold
+
+The scoring model currently implemented in the prototype is:
 
 ```text
 R(b) = (w1·ρ(b) + w2·λ(b) + w3·κ(b) + w4·ψ(b))
@@ -43,84 +51,73 @@ R(b) = (w1·ρ(b) + w2·λ(b) + w3·κ(b) + w4·ψ(b))
 
 Where:
 
-- `ρ(b)` is expected reuse score
-- `λ(b)` is routing likelihood for MoE-style paths
-- `κ(b)` is layer criticality
-- `ψ(b)` is quality sensitivity
+- `ρ(b)` is reuse score
+- `λ(b)` is routing likelihood
+- `κ(b)` is criticality
+- `ψ(b)` is sensitivity
 - `δ(b)` is decompression cost
 - `τ(b)` is transfer cost
 
-In the prototype, this score drives a policy-oriented controller model rather than a fully validated data-movement backend. The current implementation captures the policy and control-plane shape: block ranking, target-state selection, hysteresis-aware transitions, and guardrail-aware demotion decisions.
+The current code captures the policy shape, transitions, and control-plane logic. Future work includes richer movement backends, stronger instrumentation, and fuller model integrations.
 
-## Residency Model
+The controller currently reasons about a seven-state model:
 
-vOrchestrate currently defines seven conceptual weight states:
-
-| State | Meaning | Notes |
-|-------|---------|-------|
-| `S0` | Full-precision resident in HBM | Lowest access overhead |
-| `S1` | Low-bit resident in HBM | Intended to preserve HBM locality with some precision tradeoff |
-| `S2` | Compressed resident in HBM | Policy state for compressed-on-device residency |
-| `S3` | Staged in host DRAM / CXL-like memory | Requires host transfer before compute |
-| `S4` | Staged on NVMe | Cold tier with larger transfer penalty |
-| `S5` | In-flight transfer | Transient bookkeeping state in the conceptual model |
-| `S6` | Recomputable / derived | Extreme-pressure fallback state in the conceptual model |
-
-These states are part of the controller model implemented in the prototype. Not every state is backed today by a real kernel path or storage backend.
+| State | Meaning |
+|-------|---------|
+| `S0` | full precision in HBM |
+| `S1` | low-bit in HBM |
+| `S2` | compressed in HBM |
+| `S3` | staged in host DRAM |
+| `S4` | staged on NVMe |
+| `S5` | in-flight transfer |
+| `S6` | recomputable or derived fallback |
 
 ## What The Repo Implements Today
 
-The current codebase already contains a meaningful amount of scaffolding and policy logic:
+| Capability | Status | Notes |
+|------------|--------|-------|
+| Block metadata / registry | Present | Tracks residency-related metadata per unit |
+| Scoring engine | Present | Computes residency priority from policy inputs |
+| State machine | Present | Models transitions across `S0`–`S6` |
+| Guardrail logic | Present | Protects sensitive blocks from aggressive demotion |
+| Scheduler / orchestration scaffold | Present | Early controller path exists |
+| Synthetic controller simulation | Present | Deterministic simulation uses structured synthetic block descriptors |
+| Trace writer | Present | JSON and CSV trace output for simulation runs |
+| Lightweight metrics container | Present | Counts promotions, demotions, prefetches, stages, and vetoes |
+| Integration surface | Partial / illustrative | Adapter shape exists and the Hugging Face wrapper remains exploratory |
+| Reproducible benchmark suite | Planned | Methodology and scaffolding are in progress |
 
-- `WeightBlockRegistry` for thread-safe metadata tracking, access history, reuse updates, and HBM pressure accounting
-- `ScoringEngine` for composite residency scoring and promotion or demotion ranking
-- `AccuracyGuardrail` for sensitivity-aware veto logic that prevents blocks above a threshold from being demoted below low-bit HBM residency
-- `WeightStateMachine` for transition decisions, transition logging, and hysteresis-aware policy execution
-- `PrefetchScheduler` for async queue management and promotion-priority versus demotion-throttling behavior
-- a partial Hugging Face-style wrapper path that instruments leaf modules and calls the control loop at layer intervals
-- small benchmark helper utilities for registry memory summaries and perplexity-delta calculations
-- illustrative examples and test coverage for the core control-plane modules
+## What Is Not Complete Yet
 
-## What Is Not Yet Complete
+Several important pieces are intentionally not overstated:
 
-This is where the repo should be read carefully:
-
-- there is no full published benchmark suite yet
-- there is no rigorous claim yet of quality parity on large production models
-- the examples are illustrative and mostly small-scale
-- the Hugging Face integration path should be read as partial and exploratory, not broad production support for arbitrary model families
-- the current repository establishes the orchestration skeleton and policy surfaces, but full data-movement backends, CUDA kernels, and large-model validation remain future work
-
-That limitation is intentional to state clearly. The goal is to make the project more trustworthy, not smaller.
-
-## Status Matrix
-
-| Area | Status | Notes |
-|------|--------|-------|
-| Scoring engine | Present | Composite block scoring and ranking logic are implemented |
-| State machine | Present | Transition logic and transition history are implemented |
-| Guardrail | Present | Sensitivity threshold veto logic is implemented |
-| Scheduler scaffold | Present | Async queue, prioritization, and throttling scaffold are implemented |
-| Toy examples | Present | Small illustrative examples are included |
-| Hugging Face integration | Partial | Wrapper and layer-hook path exist, but broad compatibility is not yet established |
-| Real offload backend | Planned | No production data-movement engine yet |
-| Reproducible large-model benchmarks | Planned | Benchmark methodology is being documented and built out |
+- there is no published large-model benchmark suite yet
+- there is no broad proof of quality parity yet
+- there is no universal Hugging Face support claim
+- current examples are still small or illustrative
+- the current repository should be read as a serious prototype, not finished production infrastructure
 
 ## Quick Start
 
-### Small runnable example
+### Runnable local example
 
-The repo includes a small CPU-friendly example that demonstrates the wrapper shape on a toy transformer-like model:
+The most truthful starting point today is the synthetic controller simulation:
+
+```bash
+python examples/simulated_trace.py
+```
+
+That example constructs deterministic synthetic block descriptors, runs them through the existing scoring, guardrail, state-machine, and scheduling path, and writes trace artifacts.
+
+You can also run the smaller toy wrapper example:
 
 ```bash
 python examples/basic_usage.py
 ```
 
-That example exercises the orchestration scaffold and registry updates without claiming large-model support.
+### Target integration shape
 
-### Intended wrapper API shape
-
-The Hugging Face integration in this repo is best read as the target API shape for transformer-style model integration:
+The repository also contains an illustrative integration shape for transformer-style models:
 
 ```python
 from transformers import AutoModelForCausalLM
@@ -136,92 +133,75 @@ model = VOrchestrate(
 )
 ```
 
-This wrapper path exists in the codebase, but broad end-to-end validation across model families is still future work.
+This should be read as a target integration surface, not as a broadly validated claim of support for arbitrary real-world model stacks.
 
 ## Architecture
 
 ```text
-┌───────────────────────────── Inference Engine ─────────────────────────────┐
-│ Transformer-style forward path issues layer and block accesses             │
-└───────────────────────────────┬────────────────────────────────────────────┘
-                                │ access telemetry
-                                ▼
-┌────────────────────────── Telemetry / Registry ────────────────────────────┐
-│ WeightBlockRegistry stores access history, state, criticality, sensitivity │
-└───────────────────────────────┬────────────────────────────────────────────┘
-                                │ block metadata
-                                ▼
-┌──────────────────────────── Scoring Engine ────────────────────────────────┐
-│ Composite score R(b) ranks promotion and demotion candidates               │
-└───────────────┬───────────────────────────────┬────────────────────────────┘
-                │                               │
-                ▼                               ▼
-        ┌───────────────┐               ┌─────────────────┐
-        │ Guardrail     │               │ State Machine   │
-        │ ψ-threshold   │──────────────▶│ transition logic│
-        └───────────────┘               └────────┬────────┘
-                                                 │ commands
-                                                 ▼
-                                  ┌────────────────────────────┐
-                                  │ Scheduler / Prefetch Queue │
-                                  └─────────────┬──────────────┘
-                                                │ residency traffic
-                       ┌────────────────────────┼─────────────────────────┐
-                       ▼                        ▼                         ▼
-                  HBM / GPU                 Host DRAM                 NVMe / SSD
+Inference Engine
+    -> Telemetry / Registry
+    -> Scoring Engine
+    -> Guardrail
+    -> State Machine
+    -> Scheduler / Prefetch
+    -> HBM / DRAM / NVMe tiers
 ```
 
-For a more detailed controller walkthrough, see [docs/architecture.md](docs/architecture.md) and [docs/architecture.mmd](docs/architecture.mmd).
+See [docs/architecture.md](docs/architecture.md) for the fuller controller explanation and embedded Mermaid diagram.
 
 ## Repository Layout
 
 ```text
-vorchestrate/core          core controller logic: registry, scorer, guardrail, state machine, scheduler
-vorchestrate/integrations  model integration scaffolding, including the current Hugging Face wrapper path
-vorchestrate/benchmarks    lightweight benchmark helper utilities
-examples                   runnable toy examples showing the intended control flow
-tests                      pytest coverage for the core policy modules
-docs                       architecture, roadmap, benchmark plan, limitations, and design notes
-benchmarks                 benchmark planning notes and a stub entry point for future reproducible runs
+vorchestrate/core          core controller logic: registry, scorer, metrics, guardrail, state machine, scheduler
+vorchestrate/integrations  integration scaffolding and minimal future adapter surface
+vorchestrate/utils         trace utilities and synthetic controller simulation helpers
+examples                   runnable prototype examples and illustrative integration paths
+benchmarks                 benchmark scaffold and output directory for synthetic runs
+docs                       architecture, benchmark plan, roadmap, limitations, design principles
+tests                      pragmatic pytest coverage for core logic and prototype utilities
 ```
 
 ## Benchmarks
 
-Benchmark harness and first reproducible measurements are in progress.
+The benchmark path is being built in a staged, credible way rather than through fabricated results.
 
-The current repo does not publish authoritative performance numbers yet. Instead, it includes the initial benchmark planning docs and helper utilities needed to structure that work carefully.
+See [docs/benchmark_plan.md](docs/benchmark_plan.md) for the methodology.
 
-| Model | Hardware | HBM Budget | Baseline Peak Memory | Controlled Peak Memory | Throughput Delta | Quality Delta | Status |
-|-------|----------|------------|----------------------|------------------------|------------------|---------------|--------|
-| `gpt2` | single GPU or CPU emulation | TBD | TBD | TBD | TBD | TBD | planned |
-| `Llama-2-13B` | target single-GPU setup | TBD | TBD | TBD | TBD | TBD | planned |
-| `Mixtral 8x7B` | target multi-tier offload study | TBD | TBD | TBD | TBD | TBD | planned |
-
-See [docs/benchmark_plan.md](docs/benchmark_plan.md) and [benchmarks/README.md](benchmarks/README.md).
+| Work Item | Status | Notes |
+|-----------|--------|-------|
+| Synthetic controller traces | Present | Deterministic simulation path is available |
+| Benchmark stub harness | Present | Writes synthetic artifacts under `benchmarks/results/` |
+| Small-model real integration benchmark | Planned | Intended next validation step |
+| Larger-model memory and quality study | Planned | Not yet published |
+| Reproducible benchmark report | TBD | Depends on instrumentation and validation work |
 
 ## Roadmap
 
-Immediate next steps:
+Immediate roadmap items:
 
-- validate the wrapper path on one real Hugging Face model with a documented demo flow
-- build a reproducible benchmark harness with before-or-after memory traces
-- compare policy variants against baseline, static quantization, and naive offload
-- improve observability around transitions, queue activity, and residency pressure
-- expand the docs and diagrams so the controller model is easier to inspect and critique
+- controller trace simulation
+- metrics instrumentation
+- benchmark harness
+- adapter experiments
+- richer documentation
 
-The phased roadmap is documented in [docs/roadmap.md](docs/roadmap.md).
+The phased roadmap is described in [docs/roadmap.md](docs/roadmap.md).
+
+## Contributing
+
+Contributions are especially welcome around:
+
+- policy experiments
+- instrumentation
+- adapters
+- traces
+- benchmarks
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 ## Patent
 
 This repository is related to methods described in Indian Patent Application **IN 202641039064** — *System and Method for Predictive Multi-Tier Weight Residency and Precision Orchestration for Neural-Network Inference* — filed 29 March 2026.
-
-The open-source implementation is released under Apache 2.0. Commercial licensing inquiries can be sent to `manishklach@gmail.com`.
-
-## Contributing
-
-Contributions are welcome, especially around instrumentation, trace collection, benchmark methodology, integration experiments, and careful policy evaluation.
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) first. If you share benchmark or integration results, include enough detail that another contributor can reproduce the setup.
 
 ## Author
 

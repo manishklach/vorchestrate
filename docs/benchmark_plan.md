@@ -1,96 +1,87 @@
 # Benchmark Plan
 
-This document describes how vOrchestrate should be measured once the benchmark path is mature enough to publish repeatable numbers.
+This document describes how vOrchestrate should be benchmarked in a way that is useful and believable.
 
-## Goals
+## Benchmark Goals
 
-The benchmark effort should answer a small number of concrete questions:
+The benchmark path should answer a few concrete questions:
 
-- does the controller reduce effective peak HBM usage relative to baseline?
-- what extra host-memory pressure or storage traffic does that introduce?
-- what is the throughput or latency cost of the policy?
-- does the guardrail appear to preserve quality better than more naive demotion paths?
+- can the controller reduce peak GPU memory pressure relative to baseline?
+- what host-memory or storage traffic does that introduce?
+- what prefetch and eviction behavior does the controller generate?
+- what latency or throughput cost follows from those decisions?
+- does the controller appear to preserve quality better than simpler fallback strategies?
 
-## Metrics
+## Metrics To Measure
 
-### Memory
-
-Track:
+For real-model benchmarks, the target metrics include:
 
 - peak GPU memory
-- average GPU memory over a run
-- host-memory footprint
-- logical bytes placed in HBM versus DRAM versus NVMe
+- host memory
+- offload traffic
+- prefetch count
+- eviction count
+- latency or throughput
+- quality proxy
 
-### Data Movement
+Examples of a quality proxy:
 
-Track:
+- perplexity delta
+- task loss delta
+- another fixed evaluation metric for a clearly documented workload
 
-- bytes transferred between host and device
-- estimated or measured NVMe traffic
-- queue depth over time
-- number of promotions and demotions
-- time spent in transfer or staged states where available
+## Baseline Comparisons
 
-### Performance
+Every published benchmark should identify its baseline clearly. The intended comparison set is:
 
-Track:
+1. no orchestration
+2. static quantized setup
+3. naive offload
+4. controller-driven strategy
 
-- tokens per second for decode-heavy runs
-- end-to-end latency for fixed prompts
-- tail latency if batching is involved
+Not every experiment must include every baseline immediately, but the full benchmark story should eventually cover them.
 
-### Quality
+## Reproducibility Rules
 
-Track at least one quality proxy:
-
-- perplexity delta on a fixed evaluation slice
-- or another reproducible task-level metric tied to a specific model and dataset
-
-The repo already includes a small perplexity-delta helper, but the larger evaluation harness is still future work.
-
-## Baselines
-
-Each benchmark should compare against at least one of the following:
-
-1. baseline model execution with no orchestration
-2. static quantization baseline
-3. naive offload baseline
-4. vOrchestrate policy run
-
-The exact comparison set can vary per experiment, but any published result should name the baselines clearly.
-
-## Measurement Plan
-
-For each run, capture:
-
-- model name and parameter count
-- hardware configuration
-- PyTorch version and runtime environment
-- prompt shape or sequence-length profile
-- batch size
-- HBM budget target
-- policy configuration including thresholds and weights
-
-## Reproducibility Expectations
-
-Each reported result should include enough detail for another contributor to reproduce it:
+Any reported result should capture:
 
 - model and revision
 - hardware setup
 - software versions
-- benchmark command
-- dataset or prompt source
-- exact policy settings
-- warmup and measurement window
+- prompt or dataset details
+- warmup procedure
+- measurement window
+- controller configuration
+- command used to run the benchmark
 
-## Suggested Initial Path
+## Phased Validation Plan
 
-Start with a small and inspectable workload:
+### Phase A: Synthetic Traces
 
-1. validate bookkeeping on a toy model
-2. validate wrapper behavior on a small Hugging Face model
-3. collect before/after logical memory traces
-4. only then move toward larger-model experiments
+Start with deterministic synthetic traces to validate:
 
-This ordering matters because it helps separate controller correctness from hardware-specific performance noise.
+- scoring behavior
+- guardrail decisions
+- transition counts
+- trace output shape
+
+### Phase B: Small Real Models
+
+Move next to one or more small real models to validate:
+
+- instrumentation path
+- memory accounting
+- latency impact
+- first quality proxy comparisons
+
+### Phase C: Larger Models
+
+Only after the above is stable:
+
+- expand to larger-model experiments
+- compare multiple policy settings
+- publish memory, traffic, throughput, and quality tradeoffs carefully
+
+## Current State
+
+The current repo supports Phase A best. Phase B and Phase C are still future work.

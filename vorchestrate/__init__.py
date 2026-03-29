@@ -4,6 +4,7 @@ import atexit
 
 from .core import (
     AccuracyGuardrail,
+    ControllerMetrics,
     PrefetchScheduler,
     ScoringEngine,
     WeightBlockMeta,
@@ -14,6 +15,7 @@ from .integrations.huggingface import VOrchestrate
 
 __all__ = [
     "AccuracyGuardrail",
+    "ControllerMetrics",
     "PrefetchScheduler",
     "ScoringEngine",
     "VOrchestrate",

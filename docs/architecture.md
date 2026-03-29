@@ -1,113 +1,120 @@
 # vOrchestrate Architecture
 
-vOrchestrate is currently best understood as a control-plane prototype for dynamic weight residency orchestration. The repo focuses on how a controller could represent, score, and transition weight blocks across memory tiers before a full production data path exists.
+vOrchestrate is currently best described as a controller-oriented prototype for dynamic weight residency orchestration. The current repository focuses on the policy plane: how a system might represent residency-managed units, score them, guard against harmful demotion, and record transition behavior.
 
 ## Controller Overview
 
-The prototype has five central pieces:
+The prototype consists of a small set of cooperating modules:
 
-1. `WeightBlockRegistry`
-2. `ScoringEngine`
-3. `AccuracyGuardrail`
-4. `WeightStateMachine`
-5. `PrefetchScheduler`
+- `WeightBlockRegistry`
+- `ScoringEngine`
+- `AccuracyGuardrail`
+- `WeightStateMachine`
+- `PrefetchScheduler`
+- synthetic trace and metrics tooling
 
-Together, they form a policy loop:
+The current implementation is strong on controller structure and testable orchestration logic. It is intentionally lighter on production data movement backends.
 
-1. Track weight-block metadata and access history.
-2. Compute a residency priority score per block.
-3. Apply guardrail constraints to sensitive blocks.
-4. Decide target states under current HBM pressure.
-5. Queue promotion or demotion activity.
+## Mermaid Diagram
 
-This is implemented as a CPU-testable reference path in the current repo.
+```mermaid
+flowchart LR
+    IE["Inference Engine"]
+    REG["Telemetry / Registry"]
+    SCORE["Scoring Engine"]
+    GRD["Guardrail"]
+    SM["State Machine"]
+    SCH["Scheduler / Prefetch"]
+    HBM["HBM"]
+    DRAM["DRAM"]
+    NVME["NVMe"]
 
-## Score Terms
+    IE --> REG
+    REG --> SCORE
+    REG --> GRD
+    SCORE --> SM
+    GRD --> SM
+    SM --> SCH
+    SCH --> HBM
+    SCH --> DRAM
+    SCH --> NVME
+```
 
-The prototype uses the following composite score:
+## Scoring Terms
+
+The prototype uses the following controller score:
 
 ```text
 R(b) = (w1·ρ(b) + w2·λ(b) + w3·κ(b) + w4·ψ(b))
        ÷ (α·δ(b) + β·τ(b))
 ```
 
-Meaning of each term:
+Where:
 
-- `ρ(b)`: expected reuse score derived from recent access history
-- `λ(b)`: routing likelihood, intended for MoE-style paths where block usage is sparse and route-dependent
-- `κ(b)`: offline or static layer criticality estimate
-- `ψ(b)`: quality sensitivity estimate used to avoid collapsing important blocks too aggressively
-- `δ(b)`: decompression cost
-- `τ(b)`: transfer cost
+- `ρ(b)` is reuse score
+- `λ(b)` is routing likelihood
+- `κ(b)` is criticality
+- `ψ(b)` is sensitivity
+- `δ(b)` is decompression cost
+- `τ(b)` is transfer cost
 
-In the current implementation:
+In the current repository, those terms are stored and processed as controller metadata. That means the code can already evaluate policy behavior even when a full backend for moving actual model weights is not yet present.
 
-- reuse is updated from a sliding access history
-- routing likelihood can be set on a per-block basis
-- criticality and sensitivity are stored with each block
-- decompression and transfer costs are represented as metadata fields used by the score and scheduler
+## State Model
 
-## Weight States
+The controller defines seven states:
 
-The residency model currently defines seven states:
+| State | Meaning | Current role |
+|-------|---------|--------------|
+| `S0` | full precision in HBM | active controller state |
+| `S1` | low-bit in HBM | active controller state |
+| `S2` | compressed in HBM | active controller state |
+| `S3` | staged in host DRAM | active controller state |
+| `S4` | staged on NVMe | active controller state |
+| `S5` | in-flight transfer | conceptual controller state |
+| `S6` | recomputable / derived fallback | conceptual controller state |
 
-| State | Description | Prototype status |
-|-------|-------------|------------------|
-| `S0` | Full precision in HBM | represented in control logic |
-| `S1` | Low-bit in HBM | represented in control logic |
-| `S2` | Compressed in HBM | represented in control logic |
-| `S3` | Host DRAM / CXL-style staging | represented in control logic |
-| `S4` | NVMe staging | represented in control logic |
-| `S5` | In-flight transfer | conceptual state, not yet a full transfer backend |
-| `S6` | Recomputable / derived fallback | conceptual state, not yet a full recomputation backend |
+The current code models all seven states at the policy level. Some of them still need fuller runtime backends before they become more than controller states.
 
-The important point is that the state model already exists in the controller, even though several states still need real runtime backends behind them.
+## Lifecycle Of A Residency-Managed Unit
 
-## Weight Block Lifecycle
+The prototype currently models a unit like this:
 
-The intended lifecycle of a block in the prototype looks like this:
+1. register the unit and attach residency-related metadata
+2. update access history and predicted next use
+3. recompute its score
+4. apply guardrail logic if sensitivity is high
+5. choose a target state under current HBM pressure
+6. issue a transition or keep decision
+7. record queue activity, traces, and counters
 
-1. A block is registered with metadata such as layer name, size, criticality, sensitivity, and initial state.
-2. Accesses update recent history and predicted next-use timing.
-3. The scorer recomputes a score from access behavior and cost metadata.
-4. The state machine chooses whether the block should remain in place, be promoted, or be demoted.
-5. The guardrail can veto demotion below `S1` for sufficiently sensitive blocks.
-6. The scheduler can queue promotion or demotion activity and expose queue depth or bandwidth pressure estimates.
+This lifecycle is what makes the repository useful today: it provides a testable policy loop.
 
-In other words, the current repo already captures the lifecycle of control decisions, even though it does not yet move real model weights across actual storage tiers in a production setting.
+## Guardrail
 
-## Current Hugging Face Path
+The guardrail is a central safeguard in the prototype. It prevents blocks above a sensitivity threshold from being demoted below low-bit HBM residency.
 
-The `VOrchestrate` wrapper in `vorchestrate/integrations/huggingface.py` currently does the following:
+This is not yet a full proof of quality preservation. It is a policy mechanism intended to bias the controller toward graceful degradation before quality-sensitive units are pushed too far down the residency ladder.
 
-- walks leaf modules with direct parameters
-- registers them as weight blocks
-- monkey-patches layer forwards to record access timing
-- ticks the state machine every `N` layer calls
-
-That makes it a meaningful integration scaffold, but not yet a hardened integration layer for arbitrary transformer implementations.
-
-## What Is Implemented Today
+## Implemented Today
 
 Implemented in the current repo:
 
-- thread-safe registry and per-block metadata model
-- score computation and target-state heuristics
-- hysteresis-aware transition logic
-- sensitivity threshold guardrail
-- async queue scaffold for promotions and demotions
-- small benchmark helper functions
-- tests covering the main control-plane modules
+- metadata tracking and access-history updates
+- scoring and ranking logic
+- state-machine transitions
+- guardrail veto logic
+- async scheduling scaffold
+- synthetic simulation, trace writing, and metrics accumulation
+- partial integration surfaces and toy wrapper paths
 
-## What Remains Future Work
+## Future Work
 
-Still to be built or validated:
+Still needed:
 
-- real transfer backends across HBM, host memory, and NVMe
-- integration with actual compression or quantization kernels
-- measured residency traces on larger models
-- published throughput and quality comparisons
-- broader model-family compatibility testing
-- richer observability and tracing exports
-
-This distinction matters. The repository is already technically interesting, but it is still early enough that the right framing is “serious prototype” rather than “finished runtime.”
+- richer movement backends
+- stronger instrumentation on live runs
+- reproducible benchmark reports
+- small-model validation
+- larger-model experiments
+- broader adapter work

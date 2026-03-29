@@ -12,6 +12,7 @@ from .constants import (
     STATE_RECOMPUTABLE,
 )
 from .guardrail import AccuracyGuardrail
+from .metrics import ControllerMetrics
 from .registry import WeightBlockMeta, WeightBlockRegistry
 from .scheduler import PrefetchScheduler
 from .scorer import ScoringEngine
@@ -20,6 +21,7 @@ from .state_machine import WeightStateMachine
 __all__ = [
     "AccuracyGuardrail",
     "ALL_WEIGHT_STATES",
+    "ControllerMetrics",
     "HBM_RESIDENT_STATES",
     "PrefetchScheduler",
     "ScoringEngine",

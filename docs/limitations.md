@@ -1,37 +1,41 @@
-# Current Limitations
+# Limitations
 
-vOrchestrate is intentionally published as an early-stage prototype. The main limitations today are listed here so the project can be evaluated honestly.
+This repository is intentionally transparent about current scope.
 
-## Runtime Scope
+## Prototype Scope
 
-- the repository currently implements control-plane logic more than full data-plane execution
-- there is no production-ready backend for moving real model weights across HBM, DRAM, and NVMe tiers
-- several residency states are represented in the controller but not yet backed by a full runtime path
+vOrchestrate is a prototype control plane. It is not yet a production runtime for orchestrating arbitrary large-model deployments.
 
-## Integration Scope
+## No Production Claim
 
-- the Hugging Face wrapper is partial and exploratory
-- compatibility across arbitrary model architectures is not yet established
-- the vLLM integration remains a stub
+The repository does not claim:
 
-## Validation Scope
+- production readiness
+- broad large-model support
+- benchmark-proven quality preservation
+- benchmark-proven memory or throughput gains
 
-- there is no published large-model benchmark suite yet
-- there is no current claim of quality parity on production-scale models
-- the examples in the repository are illustrative and mostly toy-sized
+## Limited Integration Surface
 
-## Measurement Scope
+- the Hugging Face wrapper is exploratory
+- the adapter base class is intentionally abstract
+- broader model-family support is still future work
 
-- queue and transfer behavior are modeled, but not yet tied to a real production offload backend
-- compression, quantization, and decompression pathways are represented at the metadata or policy level rather than through fully integrated kernels
+## Illustrative Examples
 
-## Why Publish At This Stage
+The examples are designed to exercise the controller honestly:
 
-Even with these limitations, the repository is useful because it makes the orchestration model inspectable:
+- small toy wrapper path
+- MoE-style metadata example
+- synthetic controller simulation
 
-- the state model is explicit
-- the scoring policy is explicit
-- the guardrail logic is explicit
-- the transition loop is testable
+They are illustrative and useful, but they are not broad deployment proof.
 
-That makes the repo a good place to refine the architecture, instrument real experiments, and attract collaborators who care about memory-aware inference systems.
+## Validation Gaps
+
+Still missing:
+
+- published real-model benchmark suite
+- stronger memory instrumentation on live model runs
+- broader quality-evaluation evidence
+- mature backends for actual movement across tiers

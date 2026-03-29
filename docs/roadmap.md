@@ -1,68 +1,48 @@
-# vOrchestrate Roadmap
+# Roadmap
 
-This roadmap is organized around credibility as much as capability. The goal is not just to add features, but to validate the controller against increasingly realistic workloads and measurement standards.
+The roadmap is organized around progressive validation rather than headline claims.
 
-## Phase 1: Prototype Baseline
+## Phase 0: Controller Skeleton
 
-Current focus:
+Current repository baseline:
 
-- establish the controller model
-- make the core modules testable without GPU dependencies
-- define the state model and scoring inputs clearly
-- provide a first integration path and example scaffolding
+- registry
+- scoring engine
+- guardrail
+- state machine
+- scheduler scaffold
 
-Repository state today:
+## Phase 1: Simulation And Trace Tooling
 
-- core policy modules are present
-- toy examples are present
-- partial Hugging Face-style wrapper path is present
-- benchmark and observability work are still early
+Current near-term work:
 
-## Phase 2: Validated Benchmark Path
+- synthetic controller traces
+- JSON and CSV trace output
+- metrics accumulation
+- deterministic simulation scenarios
 
-Next milestone:
+## Phase 2: Benchmark Instrumentation
 
-- build a reproducible benchmark harness
-- measure logical HBM pressure versus baseline
-- document host-memory and storage-traffic behavior
-- compare policy variants under controlled settings
-- publish small, clearly reproducible first results
+Next step:
 
-Expected outputs:
+- benchmark harness
+- better accounting for memory pressure and residency changes
+- benchmark result serialization
+- clearer comparison to baseline strategies
 
-- benchmark scripts and configuration docs
-- fixed baseline comparisons
-- before/after memory traces
-- initial quality-proxy evaluation
+## Phase 3: Small-Model Validation
 
-## Phase 3: Stronger Runtime Backends
+Next validation step:
 
-Planned work:
+- exercise one or more small real transformer models
+- measure latency and memory behavior
+- inspect whether guardrail-aware policies behave as intended
 
-- move from policy skeleton to real movement and residency backends
-- add explicit transfer or compression pathways
-- enrich observability around queue activity and transition timing
-- make the scheduler and state machine easier to inspect in live runs
-
-## Phase 4: Broader Integrations
+## Phase 4: Larger-Model Experiments
 
 Longer-term direction:
 
-- validate one Hugging Face model family carefully
-- explore vLLM or adjacent serving integrations
-- add MoE-aware routing history support
-- support richer tiering policies, including CXL-like host tiers
-
-## Phase 5: Comparative Studies
-
-Longer-term comparative work:
-
-- compare against baseline no-orchestration runs
-- compare against static quantization
-- compare against naive offload
-- study policy sensitivity and hysteresis tuning
-- analyze when quality guardrails meaningfully protect output quality
-
-## Guiding Principle
-
-Each phase should leave behind reproducible artifacts, not just broader claims.
+- larger-model experiments
+- richer tier backends
+- policy comparison studies
+- reproducible benchmark reports

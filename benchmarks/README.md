@@ -1,15 +1,29 @@
-# Benchmark Work In Progress
+# Benchmarks
 
-This directory is reserved for reproducible benchmark entry points and run notes.
+This directory currently contains an early benchmark scaffold, not a published benchmark suite.
 
-The current repository does not yet publish benchmark results as settled facts. Instead, the goal is to build a careful path toward credible measurements.
+## What The Scaffold Does Today
 
-## First Benchmark Flow
+- runs a synthetic controller simulation
+- writes structured trace files under `benchmarks/results/`
+- records a summary JSON with controller counters and event counts
+- provides a place to standardize run configuration before real-model benchmarking is added
 
-1. Validate the controller on the toy example path.
-2. Validate the wrapper on one small Hugging Face model.
-3. Capture baseline memory and latency traces.
-4. Compare against the orchestrated run under the same prompt and hardware settings.
-5. Record both policy settings and observed trace outputs.
+## What It Does Not Yet Do
 
-See [../docs/benchmark_plan.md](../docs/benchmark_plan.md) for the broader methodology.
+- it does not measure real-model GPU performance
+- it does not publish authoritative throughput or latency numbers
+- it does not prove quality preservation on large production models
+- it does not replace the future need for baseline comparisons against static quantization or naive offload
+
+## Future Real-Model Benchmarking Should Measure
+
+- peak GPU memory
+- host memory
+- offload traffic
+- prefetch count
+- eviction count
+- latency or throughput
+- a quality proxy such as perplexity delta
+
+See [../docs/benchmark_plan.md](../docs/benchmark_plan.md) for the staged methodology.
