@@ -78,3 +78,10 @@ def test_update_reuse_score_rejects_invalid_window(registry: WeightBlockRegistry
     block_id = registry.register_block("layer", 100, criticality=0.5, sensitivity=0.5)
     with pytest.raises(ValueError):
         registry.update_reuse_score(block_id, window_size=0)
+
+
+def test_update_access_trims_history_to_window(registry: WeightBlockRegistry) -> None:
+    block_id = registry.register_block("layer", 100, criticality=0.5, sensitivity=0.5)
+    for step in range(40):
+        registry.update_access(block_id, step)
+    assert len(registry.get_block(block_id).access_history) == 32

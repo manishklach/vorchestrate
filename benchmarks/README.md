@@ -6,6 +6,8 @@ This directory currently contains an early benchmark scaffold, not a published b
 
 Today the benchmark path is centered on controller simulation and artifact generation. That makes it useful for checking policy behavior and trace structure before real-model measurement begins.
 
+The current scaffold is intended to make the validation path visible and reproducible, not to stand in for production-grade benchmarking.
+
 ## What The Scaffold Does Today
 
 - runs a synthetic controller simulation

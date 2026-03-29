@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Dict, List, Optional
+from typing import Protocol
 
 from .constants import (
     HBM_RESIDENT_STATES,
@@ -58,7 +58,7 @@ class WeightStateMachine:
         registry: WeightBlockRegistry,
         scorer: ScoringEngine,
         guardrail: AccuracyGuardrail,
-        scheduler: Optional[object] = None,
+        scheduler: SchedulerProtocol | None = None,
     ) -> None:
         """Initialize the state machine.
 
@@ -72,7 +72,7 @@ class WeightStateMachine:
         self.scorer = scorer
         self.guardrail = guardrail
         self.scheduler = scheduler
-        self._transition_history: List[Dict[str, object]] = []
+        self._transition_history: list[dict[str, object]] = []
 
     def transition(self, block_id: str, target_state: int) -> bool:
         """Attempt a state transition for a block.
@@ -94,7 +94,7 @@ class WeightStateMachine:
             self._log_transition(block_id, current_state, current_state, "guardrail_veto")
             return False
 
-        precision = STATE_TO_PRECISION.get(target_state, block.precision)
+        precision = STATE_TO_PRECISION.get(type(block.current_state)(target_state), block.precision)
         self.registry.set_state(block_id, target_state, precision=precision)
         if block.quality_sensitivity > self.guardrail.psi_threshold:
             self.guardrail.set_protection(block_id, self.registry)
@@ -132,7 +132,7 @@ class WeightStateMachine:
                 block = self.registry.get_block(block_id)
                 target_state = self.scorer.get_target_state(block_id, self.registry.get_hbm_pressure())
                 if target_state <= block.current_state:
-                    target_state = max(STATE_HOST_DRAM, block.current_state + 1)
+                    target_state = DEMOTION_TARGETS.get(block.current_state, STATE_NVME)
                 transitioned = self.transition(block_id, target_state)
                 if transitioned and self.scheduler is not None:
                     self.scheduler.enqueue_demotion(block_id, priority=10)
@@ -159,7 +159,7 @@ class WeightStateMachine:
 
             self._log_transition(block_id, block.current_state, self.registry.get_block(block_id).current_state, REASON_TICK, update_only=True)
 
-    def get_transition_history(self) -> List[Dict[str, object]]:
+    def get_transition_history(self) -> list[dict[str, object]]:
         """Return the transition log."""
         return list(self._transition_history)
 
@@ -183,3 +183,13 @@ class WeightStateMachine:
                 "timestamp": time.time(),
             }
         )
+
+
+class SchedulerProtocol(Protocol):
+    """Minimal protocol required by the state machine scheduler hook."""
+
+    def enqueue_promotion(self, block_id: str, priority: int) -> None:
+        """Queue a promotion command."""
+
+    def enqueue_demotion(self, block_id: str, priority: int) -> None:
+        """Queue a demotion command."""

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Dict, List
 
 from .constants import (
     STATE_HBM_FULL_PRECISION,
@@ -104,22 +103,22 @@ class ScoringEngine:
         )
         return numerator / max(normalized_denominator, MIN_COST_EPSILON)
 
-    def score_all_blocks(self) -> Dict[str, float]:
+    def score_all_blocks(self) -> dict[str, float]:
         """Compute scores for all blocks in the registry."""
         return {
             block.block_id: self.compute_score(block)
             for block in self.registry.get_all_blocks()
         }
 
-    def rank_blocks_for_demotion(self) -> List[str]:
+    def rank_blocks_for_demotion(self) -> list[str]:
         """Return block identifiers sorted from lowest to highest score."""
         scores = self.score_all_blocks()
-        return sorted(scores, key=scores.get)
+        return sorted(scores, key=lambda block_id: scores[block_id])
 
-    def rank_blocks_for_promotion(self) -> List[str]:
+    def rank_blocks_for_promotion(self) -> list[str]:
         """Return block identifiers sorted from highest to lowest score."""
         scores = self.score_all_blocks()
-        return sorted(scores, key=scores.get, reverse=True)
+        return sorted(scores, key=lambda block_id: scores[block_id], reverse=True)
 
     def get_target_state(self, block_id: str, hbm_pressure: float) -> int:
         """Determine the desired target state for a block.

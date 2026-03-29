@@ -2,7 +2,13 @@
 
 import pytest
 
-from vorchestrate.core import STATE_HBM_FULL_PRECISION, STATE_HOST_DRAM, STATE_NVME, ScoringEngine, WeightBlockRegistry
+from vorchestrate.core import (
+    STATE_HBM_FULL_PRECISION,
+    STATE_HOST_DRAM,
+    STATE_NVME,
+    ScoringEngine,
+    WeightBlockRegistry,
+)
 
 
 @pytest.fixture

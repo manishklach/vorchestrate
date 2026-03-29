@@ -11,13 +11,24 @@ pip install -e .[dev]
 python -m pytest -q
 ```
 
+Common local commands:
+
+```bash
+make test
+make lint
+make typecheck
+make simulate
+make benchmark-stub
+make render-trace-report
+```
+
 ## Guidelines
 
 - Keep the library CPU-testable by default.
 - Add type hints and Google-style docstrings for public APIs.
 - Add or update tests for behavior changes.
 - Prefer small, focused pull requests.
-- Document any new residency state logic or scheduler behavior in `README.md` or `docs/architecture.md`.
+- Document any new residency state logic, heuristic behavior, or scheduler behavior in `README.md` or `docs/architecture.md`.
 
 ## Reporting Results
 

@@ -18,7 +18,7 @@ For real-model benchmarks, the primary metrics should include:
 
 - peak GPU memory
 - host memory
-- offload traffic
+- offload traffic between HBM, DRAM, and NVMe tiers
 - prefetch count
 - eviction count
 - latency or throughput
@@ -53,6 +53,7 @@ Any reported result should capture:
 - measurement window
 - controller configuration
 - command used to run the benchmark
+- commit SHA or release tag for the evaluated code
 
 ## Phased Validation Plan
 

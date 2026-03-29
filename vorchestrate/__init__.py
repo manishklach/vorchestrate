@@ -1,7 +1,5 @@
 """Public package interface for vOrchestrate."""
 
-import atexit
-
 from .core import (
     AccuracyGuardrail,
     ControllerMetrics,
@@ -9,31 +7,24 @@ from .core import (
     ScoringEngine,
     WeightBlockMeta,
     WeightBlockRegistry,
+    WeightState,
     WeightStateMachine,
+    state_label,
 )
-from .integrations.huggingface import VOrchestrate
+from .integrations.huggingface import HeuristicProfile, VOrchestrate
 
 __all__ = [
     "AccuracyGuardrail",
     "ControllerMetrics",
+    "HeuristicProfile",
     "PrefetchScheduler",
     "ScoringEngine",
     "VOrchestrate",
     "WeightBlockMeta",
     "WeightBlockRegistry",
     "WeightStateMachine",
+    "WeightState",
+    "state_label",
 ]
 
 __version__ = "0.1.0"
-
-
-def _register_scheduler_shutdown() -> None:
-    """Install a best-effort interpreter shutdown hook."""
-
-    def _cleanup() -> None:
-        return None
-
-    atexit.register(_cleanup)
-
-
-_register_scheduler_shutdown()

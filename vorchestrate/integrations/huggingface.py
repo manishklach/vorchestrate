@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass, field
 from types import MethodType
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any
 
-import torch
 from torch import nn
 
 from ..core import (
@@ -22,6 +23,39 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_HBM_BUDGET_GB = 4.0
 DEFAULT_TICK_INTERVAL_LAYERS = 4
 BYTES_PER_GB = 1024**3
+DEFAULT_BASE_CRITICALITY = 0.6
+DEFAULT_BASE_SENSITIVITY = 0.55
+
+
+@dataclass(slots=True)
+class HeuristicProfile:
+    """Prototype heuristic profile for criticality and sensitivity estimates.
+
+    The defaults are deliberately simple. They provide a useful integration scaffold,
+    not universal model semantics.
+    """
+
+    criticality_keywords: dict[str, float] = field(
+        default_factory=lambda: {
+            "embed": 0.9,
+            "lm_head": 0.9,
+            "attn": 0.8,
+            "attention": 0.8,
+            "mlp": 0.7,
+            "ffn": 0.7,
+        }
+    )
+    sensitivity_keywords: dict[str, float] = field(
+        default_factory=lambda: {
+            "norm": 0.85,
+            "embed": 0.8,
+            "lm_head": 0.8,
+        }
+    )
+    criticality_overrides: dict[str, float] = field(default_factory=dict)
+    sensitivity_overrides: dict[str, float] = field(default_factory=dict)
+    criticality_callback: Callable[[str, nn.Module], float] | None = None
+    sensitivity_callback: Callable[[str, nn.Module], float] | None = None
 
 
 class VOrchestrate(nn.Module):
@@ -35,6 +69,9 @@ class VOrchestrate(nn.Module):
         psi_threshold: float = 0.7,
         tick_every_n_layers: int | None = None,
         enable_prefetch: bool = True,
+        heuristic_profile: HeuristicProfile | None = None,
+        criticality_overrides: Mapping[str, float] | None = None,
+        sensitivity_overrides: Mapping[str, float] | None = None,
     ) -> None:
         """Initialize the orchestration wrapper.
 
@@ -45,6 +82,9 @@ class VOrchestrate(nn.Module):
             psi_threshold: Sensitivity threshold for the accuracy guardrail.
             tick_every_n_layers: Backward-compatible alias for tick interval.
             enable_prefetch: Whether to create the async prefetch scheduler.
+            heuristic_profile: Prototype heuristic profile for module-name-based scoring hints.
+            criticality_overrides: Optional exact-match overrides by module name.
+            sensitivity_overrides: Optional exact-match overrides by module name.
         """
         if tick_every_n_layers is not None:
             tick_interval_layers = tick_every_n_layers
@@ -55,6 +95,11 @@ class VOrchestrate(nn.Module):
         self.model = model
         self.hbm_budget_bytes = int(hbm_budget_gb * BYTES_PER_GB)
         self.tick_interval_layers = tick_interval_layers
+        self.heuristic_profile = heuristic_profile or HeuristicProfile()
+        if criticality_overrides:
+            self.heuristic_profile.criticality_overrides.update(dict(criticality_overrides))
+        if sensitivity_overrides:
+            self.heuristic_profile.sensitivity_overrides.update(dict(sensitivity_overrides))
         self.registry = WeightBlockRegistry(hbm_capacity_bytes=self.hbm_budget_bytes)
         self.guardrail = AccuracyGuardrail(psi_threshold=psi_threshold)
         self.scorer = ScoringEngine(self.registry)
@@ -67,8 +112,9 @@ class VOrchestrate(nn.Module):
         )
         self._step = 0
         self._layer_calls = 0
-        self._registered_layers: Dict[str, str] = {}
-        self._original_forwards: Dict[str, Callable[..., Any]] = {}
+        self._registered_layers: dict[str, str] = {}
+        self._original_forwards: dict[str, Callable[..., Any]] = {}
+        self._layer_modules: dict[str, nn.Module] = {}
 
         self._register_model_layers()
         self._patch_layer_forwards()
@@ -101,10 +147,11 @@ class VOrchestrate(nn.Module):
             block_id = self.registry.register_block(
                 layer_name=module_name,
                 size_bytes=size_bytes,
-                criticality=self._estimate_criticality(module_name),
-                sensitivity=self._estimate_sensitivity(module_name),
+                criticality=self._estimate_criticality(module_name, module),
+                sensitivity=self._estimate_sensitivity(module_name, module),
             )
             self._registered_layers[module_name] = block_id
+            self._layer_modules[module_name] = module
 
     def _patch_layer_forwards(self) -> None:
         """Monkey-patch layer forwards to track accesses around execution."""
@@ -136,7 +183,7 @@ class VOrchestrate(nn.Module):
 
         self.model.forward = MethodType(wrapped_model_forward, self.model)
 
-    def _iter_weighted_layers(self) -> Iterable[Tuple[str, nn.Module]]:
+    def _iter_weighted_layers(self) -> Iterable[tuple[str, nn.Module]]:
         """Yield leaf modules that own direct weight tensors."""
         for module_name, module in self.model.named_modules():
             if not module_name:
@@ -147,22 +194,26 @@ class VOrchestrate(nn.Module):
             if any(parameter.requires_grad or parameter.numel() > 0 for parameter in module.parameters(recurse=False)):
                 yield module_name, module
 
-    def _estimate_criticality(self, module_name: str) -> float:
-        """Heuristically estimate static layer criticality."""
+    def _estimate_criticality(self, module_name: str, module: nn.Module) -> float:
+        """Estimate static layer criticality using simple prototype heuristics."""
+        if module_name in self.heuristic_profile.criticality_overrides:
+            return self.heuristic_profile.criticality_overrides[module_name]
+        if self.heuristic_profile.criticality_callback is not None:
+            return self.heuristic_profile.criticality_callback(module_name, module)
         name = module_name.lower()
-        if "embed" in name or "lm_head" in name:
-            return 0.9
-        if "attn" in name or "attention" in name:
-            return 0.8
-        if "mlp" in name or "ffn" in name:
-            return 0.7
-        return 0.6
+        for keyword, value in self.heuristic_profile.criticality_keywords.items():
+            if keyword in name:
+                return value
+        return DEFAULT_BASE_CRITICALITY
 
-    def _estimate_sensitivity(self, module_name: str) -> float:
-        """Heuristically estimate quality sensitivity."""
+    def _estimate_sensitivity(self, module_name: str, module: nn.Module) -> float:
+        """Estimate quality sensitivity using simple prototype heuristics."""
+        if module_name in self.heuristic_profile.sensitivity_overrides:
+            return self.heuristic_profile.sensitivity_overrides[module_name]
+        if self.heuristic_profile.sensitivity_callback is not None:
+            return self.heuristic_profile.sensitivity_callback(module_name, module)
         name = module_name.lower()
-        if "norm" in name:
-            return 0.85
-        if "embed" in name or "lm_head" in name:
-            return 0.8
-        return 0.55
+        for keyword, value in self.heuristic_profile.sensitivity_keywords.items():
+            if keyword in name:
+                return value
+        return DEFAULT_BASE_SENSITIVITY

@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Sequence
 
 from ..core import (
     AccuracyGuardrail,
@@ -14,7 +14,13 @@ from ..core import (
     WeightBlockRegistry,
     WeightStateMachine,
 )
-from ..core.constants import HBM_RESIDENT_STATES, STATE_HOST_DRAM, STATE_NVME
+from ..core.constants import (
+    HBM_RESIDENT_STATES,
+    STATE_HOST_DRAM,
+    STATE_NVME,
+    WeightState,
+    state_label,
+)
 from .trace import TraceEvent, write_trace_csv, write_trace_json
 
 DEFAULT_SIMULATION_STEPS = 6
@@ -28,7 +34,7 @@ class SyntheticBlockDescriptor:
 
     block_id: str
     size_bytes: int
-    state: int
+    state: WeightState | int
     tier: str
     reuse_score: float
     routing_likelihood: float
@@ -55,18 +61,18 @@ class SimulationConfig:
 class SimulationResult:
     """Structured output of a controller simulation."""
 
-    events: List[TraceEvent]
+    events: list[TraceEvent]
     metrics: ControllerMetrics
-    scores_by_step: Dict[int, Dict[str, float]]
+    scores_by_step: dict[int, dict[str, float]]
 
 
-def default_synthetic_descriptors() -> List[SyntheticBlockDescriptor]:
+def default_synthetic_descriptors() -> list[SyntheticBlockDescriptor]:
     """Return a deterministic set of synthetic block descriptors."""
     return [
         SyntheticBlockDescriptor(
             block_id="embed_hot",
             size_bytes=8 * 1024 * 1024,
-            state=0,
+            state=WeightState.S0_HBM_FULL_PRECISION,
             tier="HBM",
             reuse_score=0.92,
             routing_likelihood=0.0,
@@ -78,7 +84,7 @@ def default_synthetic_descriptors() -> List[SyntheticBlockDescriptor]:
         SyntheticBlockDescriptor(
             block_id="attn_mid",
             size_bytes=7 * 1024 * 1024,
-            state=1,
+            state=WeightState.S1_HBM_LOW_BIT,
             tier="HBM",
             reuse_score=0.55,
             routing_likelihood=0.0,
@@ -90,7 +96,7 @@ def default_synthetic_descriptors() -> List[SyntheticBlockDescriptor]:
         SyntheticBlockDescriptor(
             block_id="mlp_cold",
             size_bytes=9 * 1024 * 1024,
-            state=3,
+            state=WeightState.S3_HOST_DRAM,
             tier="DRAM",
             reuse_score=0.18,
             routing_likelihood=0.0,
@@ -102,7 +108,7 @@ def default_synthetic_descriptors() -> List[SyntheticBlockDescriptor]:
         SyntheticBlockDescriptor(
             block_id="moe_hot_expert",
             size_bytes=6 * 1024 * 1024,
-            state=3,
+            state=WeightState.S3_HOST_DRAM,
             tier="DRAM",
             reuse_score=0.40,
             routing_likelihood=0.88,
@@ -114,7 +120,7 @@ def default_synthetic_descriptors() -> List[SyntheticBlockDescriptor]:
         SyntheticBlockDescriptor(
             block_id="archive_expert",
             size_bytes=10 * 1024 * 1024,
-            state=4,
+            state=WeightState.S4_NVME,
             tier="NVMe",
             reuse_score=0.06,
             routing_likelihood=0.05,
@@ -135,8 +141,8 @@ def run_controller_simulation(
     blocks = list(descriptors or default_synthetic_descriptors())
 
     registry = WeightBlockRegistry(hbm_capacity_bytes=simulation_config.hbm_budget_bytes)
-    descriptor_map: Dict[str, SyntheticBlockDescriptor] = {}
-    registry_ids: Dict[str, str] = {}
+    descriptor_map: dict[str, SyntheticBlockDescriptor] = {}
+    registry_ids: dict[str, str] = {}
 
     for descriptor in blocks:
         registry_id = registry.register_block(
@@ -146,7 +152,7 @@ def run_controller_simulation(
             sensitivity=descriptor.sensitivity,
         )
         block = registry.get_block(registry_id)
-        block.current_state = descriptor.state
+        block.current_state = WeightState(descriptor.state)
         block.reuse_score = descriptor.reuse_score
         block.routing_likelihood = descriptor.routing_likelihood
         block.transfer_cost_us = descriptor.transfer_cost_us
@@ -160,8 +166,8 @@ def run_controller_simulation(
     scheduler = PrefetchScheduler(registry)
     state_machine = WeightStateMachine(registry, scorer, guardrail, scheduler=scheduler)
     metrics = ControllerMetrics()
-    events: List[TraceEvent] = []
-    scores_by_step: Dict[int, Dict[str, float]] = {}
+    events: list[TraceEvent] = []
+    scores_by_step: dict[int, dict[str, float]] = {}
 
     try:
         for step in range(simulation_config.steps):
@@ -264,4 +270,4 @@ def _state_to_tier(state: int) -> str:
         return "DRAM"
     if state == STATE_NVME:
         return "NVMe"
-    return f"S{state}"
+    return state_label(state)

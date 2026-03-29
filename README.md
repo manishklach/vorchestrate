@@ -5,8 +5,9 @@
 Status: Early prototype / research implementation
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10+-green.svg)](setup.py)
+[![Python](https://img.shields.io/badge/python-3.10%2B-green.svg)](pyproject.toml)
 [![Status](https://img.shields.io/badge/status-early%20prototype-blue.svg)](#current-status)
+[![CI](https://github.com/manishklach/vorchestrate/actions/workflows/ci.yml/badge.svg)](https://github.com/manishklach/vorchestrate/actions/workflows/ci.yml)
 [![Patent](https://img.shields.io/badge/patent-IN%20202641039064-orange.svg)]()
 
 vOrchestrate is an early systems prototype for dynamic multi-tier weight residency orchestration. The current repository focuses on controller logic: metadata tracking, scoring, guardrail-aware demotion, state transitions, controller simulation, and the integration surfaces needed for richer runtime experiments.
@@ -61,6 +62,8 @@ Where:
 - `τ(b)` is transfer cost
 
 The current code captures the policy shape, transitions, and control-plane logic. It is intended as a foundation for richer movement backends, stronger instrumentation, adapter-backed experiments, and eventually validated memory and quality tradeoff studies.
+
+For a concise overview of the public surface that exists today, see [docs/api.md](docs/api.md).
 
 The controller currently reasons about a seven-state model:
 
@@ -117,6 +120,12 @@ You can also run the smaller toy wrapper example:
 python examples/basic_usage.py
 ```
 
+To render simple plots from the synthetic trace output:
+
+```bash
+python examples/render_trace_report.py
+```
+
 ### Target integration shape
 
 The repository also includes an illustrative integration shape for transformer-style model wrapping:
@@ -167,7 +176,8 @@ tests                      pragmatic pytest coverage for core logic and prototyp
 
 The benchmark path is being built in a staged way, with synthetic traces first and real-model validation later.
 
-See [docs/benchmark_plan.md](docs/benchmark_plan.md) for the methodology.
+See [docs/benchmark_plan.md](docs/benchmark_plan.md) for the methodology and
+[docs/visualization.md](docs/visualization.md) for the synthetic reporting path.
 
 | Work Item | Status | Notes |
 |-----------|--------|-------|

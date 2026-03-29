@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 import threading
 from dataclasses import dataclass, field
-from typing import Dict, List
 
-from .constants import HBM_RESIDENT_STATES, STATE_HBM_FULL_PRECISION
+from .constants import HBM_RESIDENT_STATES, STATE_HBM_FULL_PRECISION, WeightState
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +42,7 @@ class WeightBlockMeta:
 
     block_id: str
     layer_name: str
-    current_state: int = STATE_HBM_FULL_PRECISION
+    current_state: WeightState = STATE_HBM_FULL_PRECISION
     precision: str = "fp16"
     size_bytes: int = 0
     reuse_score: float = MIN_REUSE_SCORE
@@ -55,7 +54,7 @@ class WeightBlockMeta:
     last_access_step: int = -1
     predicted_next_access: int = -1
     eviction_protected: bool = False
-    access_history: List[int] = field(default_factory=list)
+    access_history: list[int] = field(default_factory=list)
 
 
 class WeightBlockRegistry:
@@ -68,8 +67,8 @@ class WeightBlockRegistry:
             hbm_capacity_bytes: Total effective HBM capacity available.
         """
         self.hbm_capacity_bytes = hbm_capacity_bytes
-        self._blocks: Dict[str, WeightBlockMeta] = {}
-        self._layer_counts: Dict[str, int] = {}
+        self._blocks: dict[str, WeightBlockMeta] = {}
+        self._layer_counts: dict[str, int] = {}
         self._lock = threading.RLock()
 
     def register_block(
@@ -134,6 +133,7 @@ class WeightBlockRegistry:
                     for earlier, later in zip(
                         block.access_history[:-1],
                         block.access_history[1:],
+                        strict=False,
                     )
                 ]
                 avg_interval = max(1, round(sum(intervals) / len(intervals)))
@@ -184,12 +184,12 @@ class WeightBlockRegistry:
             raise KeyError(f"unknown block_id: {block_id}")
         return self._blocks[block_id]
 
-    def get_all_blocks(self) -> List[WeightBlockMeta]:
+    def get_all_blocks(self) -> list[WeightBlockMeta]:
         """Return a snapshot list of all tracked blocks."""
         with self._lock:
             return list(self._blocks.values())
 
-    def get_blocks_by_state(self, state: int) -> List[WeightBlockMeta]:
+    def get_blocks_by_state(self, state: int | WeightState) -> list[WeightBlockMeta]:
         """Return all blocks currently assigned to a given state.
 
         Args:
@@ -221,7 +221,12 @@ class WeightBlockRegistry:
             block = self.get_block(block_id)
             block.eviction_protected = protected
 
-    def set_state(self, block_id: str, state: int, precision: str | None = None) -> None:
+    def set_state(
+        self,
+        block_id: str,
+        state: int | WeightState,
+        precision: str | None = None,
+    ) -> None:
         """Update a block's residency state and optionally its precision.
 
         Args:
@@ -231,6 +236,6 @@ class WeightBlockRegistry:
         """
         with self._lock:
             block = self.get_block(block_id)
-            block.current_state = state
+            block.current_state = WeightState(state)
             if precision is not None:
                 block.precision = precision

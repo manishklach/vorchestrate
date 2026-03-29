@@ -6,6 +6,8 @@ The examples in this repository are designed to make the current controller scaf
 
 If you want the clearest picture of controller behavior today, start with `simulated_trace.py`. It shows how synthetic block descriptors move through scoring, guardrail-aware demotion, staging, and trace capture.
 
+To turn that trace into simple figures, run `render_trace_report.py` after the simulation completes.
+
 ## `basic_usage.py`
 
 - label: runnable prototype example
@@ -33,3 +35,12 @@ These examples are prototype exercises:
 - `simulated_trace.py` is the clearest truthful example of the current controller behavior
 
 They are not a substitute for broader integration validation or benchmark-backed claims.
+
+## Visualizing The Controller Simulation
+
+```bash
+python examples/simulated_trace.py
+python examples/render_trace_report.py
+```
+
+This produces synthetic trace artifacts and a small visual report under `benchmarks/results/`.

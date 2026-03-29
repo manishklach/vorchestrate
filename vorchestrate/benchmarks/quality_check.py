@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def compute_perplexity_delta(baseline_losses: Iterable[float], candidate_losses: Iterable[float]) -> float:

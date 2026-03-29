@@ -18,6 +18,7 @@ Current near-term work:
 
 - synthetic controller traces
 - JSON and CSV trace output
+- lightweight trace visualization
 - metrics accumulation
 - deterministic simulation scenarios
 

@@ -8,7 +8,6 @@ import queue
 import threading
 import time
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from .registry import WeightBlockMeta, WeightBlockRegistry
 
@@ -53,12 +52,12 @@ class PrefetchScheduler:
         self.registry = registry
         self.transfer_margin_us = transfer_margin_us
         self.max_bandwidth_bytes_per_sec = max_bandwidth_bytes_per_sec
-        self._queue: queue.PriorityQueue[Tuple[int, int, TransferCommand]] = queue.PriorityQueue()
+        self._queue: queue.PriorityQueue[tuple[int, int, TransferCommand]] = queue.PriorityQueue()
         self._counter = 0
         self._lock = threading.RLock()
         self._stop_event = threading.Event()
-        self._completed_commands: List[TransferCommand] = []
-        self._transfer_log: List[Tuple[float, int]] = []
+        self._completed_commands: list[TransferCommand] = []
+        self._transfer_log: list[tuple[float, int]] = []
         self._thread = threading.Thread(target=self._run_worker, daemon=True, name="vorchestrate-scheduler")
         self._thread.start()
 

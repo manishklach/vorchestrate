@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict
 
 
 @dataclass(slots=True)
@@ -17,7 +16,7 @@ class ControllerMetrics:
     guardrail_vetoes: int = 0
     bytes_promoted: int = 0
     bytes_demoted: int = 0
-    transition_counts: Dict[str, int] = field(default_factory=dict)
+    transition_counts: dict[str, int] = field(default_factory=dict)
 
     def record_transition(self, old_state: int, new_state: int, size_bytes: int) -> None:
         """Record a transition and associated byte movement."""
@@ -42,7 +41,7 @@ class ControllerMetrics:
         """Record a guardrail veto."""
         self.guardrail_vetoes += 1
 
-    def to_dict(self) -> Dict[str, object]:
+    def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable metrics snapshot."""
         return {
             "promotions": self.promotions,

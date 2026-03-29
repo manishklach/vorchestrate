@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import List
-
 from .constants import STATE_HBM_LOW_BIT
 from .registry import WeightBlockMeta, WeightBlockRegistry
 
@@ -44,7 +42,7 @@ class AccuracyGuardrail:
         """Disable protection on a registry block."""
         registry.set_eviction_protection(block_id, False)
 
-    def get_protected_blocks(self, registry: WeightBlockRegistry) -> List[str]:
+    def get_protected_blocks(self, registry: WeightBlockRegistry) -> list[str]:
         """Return block ids that are currently protected."""
         return [
             block.block_id

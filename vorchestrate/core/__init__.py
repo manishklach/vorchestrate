@@ -10,6 +10,8 @@ from .constants import (
     STATE_IN_FLIGHT,
     STATE_NVME,
     STATE_RECOMPUTABLE,
+    WeightState,
+    state_label,
 )
 from .guardrail import AccuracyGuardrail
 from .metrics import ControllerMetrics
@@ -32,7 +34,9 @@ __all__ = [
     "STATE_IN_FLIGHT",
     "STATE_NVME",
     "STATE_RECOMPUTABLE",
+    "WeightState",
     "WeightBlockMeta",
     "WeightBlockRegistry",
     "WeightStateMachine",
+    "state_label",
 ]

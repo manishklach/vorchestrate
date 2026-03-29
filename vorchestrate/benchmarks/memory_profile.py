@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
-
 from ..core import WeightBlockRegistry
 
 
-def profile_registry_memory(registry: WeightBlockRegistry) -> Dict[str, float]:
+def profile_registry_memory(registry: WeightBlockRegistry) -> dict[str, float]:
     """Summarize logical memory placement statistics for the registry.
 
     Args:
@@ -30,7 +28,7 @@ def profile_registry_memory(registry: WeightBlockRegistry) -> Dict[str, float]:
     }
 
 
-def format_memory_profile_rows(registry: WeightBlockRegistry) -> List[Dict[str, object]]:
+def format_memory_profile_rows(registry: WeightBlockRegistry) -> list[dict[str, object]]:
     """Return row-wise placement summaries for external benchmark scripts.
 
     Args:

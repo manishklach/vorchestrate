@@ -74,3 +74,8 @@ def test_should_prefetch_false_for_past_prediction(scheduler: PrefetchScheduler)
 def test_scheduler_shutdown_is_idempotent(scheduler: PrefetchScheduler) -> None:
     scheduler.shutdown()
     scheduler.shutdown()
+
+
+def test_bandwidth_utilization_prunes_stale_entries(scheduler: PrefetchScheduler) -> None:
+    scheduler._transfer_log = [(0.0, 4096)]
+    assert scheduler.get_bandwidth_utilization() == 0.0

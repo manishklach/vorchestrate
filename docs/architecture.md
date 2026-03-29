@@ -13,7 +13,7 @@ The prototype consists of a small set of cooperating modules:
 - `PrefetchScheduler`
 - synthetic trace and metrics tooling
 
-The current implementation is strong on controller structure and testable orchestration logic. It is intentionally lighter on production data movement backends.
+The current implementation is strongest on controller structure and testable orchestration logic. It is intentionally lighter on production data movement backends.
 
 ## Mermaid Diagram
 
@@ -77,6 +77,8 @@ The controller defines seven states:
 | `S6` | Recomputable or derived fallback | Conceptual controller state |
 
 The current code models all seven states at the policy level. Some of them still need fuller runtime backends before they become more than controller states.
+
+While the current codebase centers on controller logic, simulation, and validation scaffolding, the broader direction is toward richer runtime experimentation under real memory hierarchy constraints.
 
 ## Lifecycle Of A Residency-Managed Unit
 

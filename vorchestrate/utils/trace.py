@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import csv
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable, List
 
 
 @dataclass(slots=True)
@@ -43,7 +43,7 @@ def write_trace_csv(path: str | Path, events: Iterable[TraceEvent]) -> Path:
     """Write trace events to CSV."""
     output_path = Path(path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    event_list: List[TraceEvent] = list(events)
+    event_list: list[TraceEvent] = list(events)
     fieldnames = list(TraceEvent.__dataclass_fields__.keys())
     with output_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)

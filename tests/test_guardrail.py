@@ -2,7 +2,12 @@
 
 import pytest
 
-from vorchestrate.core import AccuracyGuardrail, STATE_HBM_LOW_BIT, STATE_HOST_DRAM, WeightBlockRegistry
+from vorchestrate.core import (
+    STATE_HBM_LOW_BIT,
+    STATE_HOST_DRAM,
+    AccuracyGuardrail,
+    WeightBlockRegistry,
+)
 
 
 @pytest.fixture
