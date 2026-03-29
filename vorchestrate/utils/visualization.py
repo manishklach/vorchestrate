@@ -7,6 +7,7 @@ import json
 from collections import Counter, defaultdict
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from .trace import TraceEvent
 
@@ -79,7 +80,7 @@ def render_trace_report(trace_path: str | Path, output_dir: str | Path) -> list[
     return output_paths
 
 
-def _render_action_counts(plt: object, summary: dict[str, object], output_root: Path) -> Path:
+def _render_action_counts(plt: Any, summary: dict[str, object], output_root: Path) -> Path:
     action_counts = summary["action_counts"]
     if not isinstance(action_counts, dict):
         raise TypeError("expected action_counts to be a dictionary")
@@ -99,7 +100,7 @@ def _render_action_counts(plt: object, summary: dict[str, object], output_root: 
     return path
 
 
-def _render_score_over_time(plt: object, summary: dict[str, object], output_root: Path) -> Path:
+def _render_score_over_time(plt: Any, summary: dict[str, object], output_root: Path) -> Path:
     mean_score_by_step = summary["mean_score_by_step"]
     if not isinstance(mean_score_by_step, dict):
         raise TypeError("expected mean_score_by_step to be a dictionary")
@@ -120,8 +121,8 @@ def _render_score_over_time(plt: object, summary: dict[str, object], output_root
 
 
 def _render_state_timeline(
-    plt: object,
-    normalize_cls: object,
+    plt: Any,
+    normalize_cls: Any,
     events: list[TraceEvent],
     output_root: Path,
 ) -> Path:
@@ -156,7 +157,7 @@ def _render_state_timeline(
     return path
 
 
-def _render_pressure_over_time(plt: object, summary: dict[str, object], output_root: Path) -> Path:
+def _render_pressure_over_time(plt: Any, summary: dict[str, object], output_root: Path) -> Path:
     mean_pressure_by_step = summary["mean_pressure_by_step"]
     if not isinstance(mean_pressure_by_step, dict):
         raise TypeError("expected mean_pressure_by_step to be a dictionary")
