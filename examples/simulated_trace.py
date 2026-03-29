@@ -29,7 +29,8 @@ def main() -> None:
     for event in result.events[:8]:
         print(
             f"  step={event.step} block={event.block_id} action={event.action} "
-            f"old=S{event.old_state} new=S{event.new_state} score={event.score:.3f}"
+            f"old=S{event.old_state} new=S{event.new_state} "
+            f"score={event.score:.3f} hbm_pressure={event.hbm_pressure:.2f}"
         )
 
 

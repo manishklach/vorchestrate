@@ -191,6 +191,7 @@ def run_controller_simulation(
                 if prefetch and block.current_state not in HBM_RESIDENT_STATES:
                     scheduler.enqueue_promotion(registry_id, priority=1)
                     metrics.record_prefetch()
+                    hbm_pressure = registry.get_hbm_pressure()
                     events.append(
                         TraceEvent(
                             step=step,
@@ -204,6 +205,7 @@ def run_controller_simulation(
                             action="prefetch",
                             guardrail_veto=False,
                             bytes_moved=0,
+                            hbm_pressure=hbm_pressure,
                         )
                     )
 
@@ -234,6 +236,7 @@ def run_controller_simulation(
                         action = "guardrail_veto"
 
                 new_state = registry.get_block(registry_id).current_state
+                hbm_pressure = registry.get_hbm_pressure()
                 events.append(
                     TraceEvent(
                         step=step,
@@ -247,6 +250,7 @@ def run_controller_simulation(
                         action=action,
                         guardrail_veto=guardrail_veto,
                         bytes_moved=bytes_moved,
+                        hbm_pressure=hbm_pressure,
                     )
                 )
 

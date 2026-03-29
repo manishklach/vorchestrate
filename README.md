@@ -126,6 +126,31 @@ To render simple plots from the synthetic trace output:
 python examples/render_trace_report.py
 ```
 
+## Synthetic Trace Visualization
+
+The controller simulation can also be rendered into a small visual report. This is a prototype visibility path for synthetic traces, designed to make the policy easier to inspect without implying real-model telemetry.
+
+Run the simulation first, then render the plots:
+
+```bash
+python examples/simulated_trace.py
+python examples/render_trace_report.py
+```
+
+By default this writes:
+
+- synthetic traces under `benchmarks/results/simulated_trace/`
+- plots under `examples/output/simulated_trace_report/`
+
+The generated report currently includes:
+
+- `action_counts.png`
+- `score_over_time.png`
+- `state_timeline.png`
+- `pressure_over_time.png`
+
+See [docs/visualization.md](docs/visualization.md) for plot meanings and interpretation limits.
+
 ### Target integration shape
 
 The repository also includes an illustrative integration shape for transformer-style model wrapping:

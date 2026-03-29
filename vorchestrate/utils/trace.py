@@ -24,6 +24,7 @@ class TraceEvent:
     action: str
     guardrail_veto: bool
     bytes_moved: int
+    hbm_pressure: float = 0.0
 
     def to_dict(self) -> dict:
         """Return a JSON-serializable dictionary."""

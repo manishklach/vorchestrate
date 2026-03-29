@@ -43,4 +43,13 @@ python examples/simulated_trace.py
 python examples/render_trace_report.py
 ```
 
-This produces synthetic trace artifacts and a small visual report under `benchmarks/results/`.
+This produces a synthetic trace under `benchmarks/results/simulated_trace/` and PNG plots under `examples/output/simulated_trace_report/`.
+
+Generated files include:
+
+- `action_counts.png`
+- `score_over_time.png`
+- `state_timeline.png`
+- `pressure_over_time.png`
+
+These figures are synthetic controller-simulation output. They are meant to make policy behavior easier to inspect, not to stand in for real-model telemetry or benchmark evidence.

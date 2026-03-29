@@ -16,6 +16,7 @@ def test_simulation_records_valid_state_values() -> None:
     for event in result.events:
         assert 0 <= event.old_state <= 6
         assert 0 <= event.new_state <= 6
+        assert 0.0 <= event.hbm_pressure
 
 
 def test_simulation_accounts_for_guardrail_veto() -> None:

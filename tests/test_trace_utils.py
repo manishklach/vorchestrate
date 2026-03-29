@@ -20,11 +20,13 @@ def test_write_trace_json_preserves_event_shape(tmp_path) -> None:
         action="stage",
         guardrail_veto=False,
         bytes_moved=1024,
+        hbm_pressure=0.45,
     )
     path = write_trace_json(tmp_path / "trace.json", [event])
     loaded = json.loads(path.read_text(encoding="utf-8"))
     assert loaded[0]["block_id"] == "block0"
     assert loaded[0]["new_tier"] == "DRAM"
+    assert loaded[0]["hbm_pressure"] == 0.45
 
 
 def test_write_trace_csv_writes_header_and_row(tmp_path) -> None:
@@ -40,6 +42,7 @@ def test_write_trace_csv_writes_header_and_row(tmp_path) -> None:
         action="promote",
         guardrail_veto=False,
         bytes_moved=2048,
+        hbm_pressure=0.20,
     )
     path = write_trace_csv(tmp_path / "trace.csv", [event])
     content = path.read_text(encoding="utf-8")
