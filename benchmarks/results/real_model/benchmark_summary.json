@@ -1,0 +1,66 @@
+{
+  "benchmark": {
+    "model_name": "distilgpt2",
+    "prompt": "The controller observes memory pressure and adjusts residency.",
+    "batch_size": 1,
+    "warmup_runs": 1,
+    "measured_runs": 1,
+    "tick_every_n_layers": 4,
+    "max_input_length": 32,
+    "hbm_budget_bytes": 67108864,
+    "device": "cpu",
+    "output_dir": "benchmarks\\results\\real_model",
+    "generate_plots": true
+  },
+  "model": {
+    "name": "distilgpt2",
+    "parameter_count": 81912576,
+    "supported_scope": "narrow decoder-only GPT-2 style validation path"
+  },
+  "runtime": {
+    "device": "cpu",
+    "batch_size": 1,
+    "sequence_length": 9,
+    "prompt_length_chars": 62,
+    "measured_runs": 1,
+    "warmup_runs": 1,
+    "latency_seconds_mean": 0.10410920000140322,
+    "latency_seconds_per_run": [
+      0.10410920000140322
+    ],
+    "tokens_per_second_mean": 86.44769146126082,
+    "peak_gpu_memory_bytes": null,
+    "host_memory_bytes": null,
+    "cuda_available": false,
+    "mode": "observed runtime metrics"
+  },
+  "controller": {
+    "metrics": {
+      "promotions": 0,
+      "demotions": 39,
+      "prefetches": 0,
+      "stages": 39,
+      "guardrail_vetoes": 2,
+      "bytes_promoted": 0,
+      "bytes_demoted": 327650304,
+      "transition_counts": {
+        "S0->S4": 39
+      }
+    },
+    "event_count": 40,
+    "trace_origin": "real_model_benchmark",
+    "actions_are_intents": true,
+    "note": "Controller actions in this benchmark reflect policy decisions recorded through the prototype registry/state-machine path. They do not imply that real HBM/DRAM/NVMe movement backends are active."
+  },
+  "artifacts": {
+    "trace_json": "benchmarks\\results\\real_model\\benchmark_trace.json",
+    "trace_csv": "benchmarks\\results\\real_model\\benchmark_trace.csv",
+    "run_rows_csv": "benchmarks\\results\\real_model\\run_rows.csv",
+    "plots": [
+      "benchmarks\\results\\real_model\\plots\\action_counts.png",
+      "benchmarks\\results\\real_model\\plots\\score_over_time.png",
+      "benchmarks\\results\\real_model\\plots\\state_timeline.png",
+      "benchmarks\\results\\real_model\\plots\\pressure_over_time.png"
+    ]
+  }
+}

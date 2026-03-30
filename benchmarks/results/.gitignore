@@ -1,2 +1,7 @@
 *
 !.gitignore
+!real_model/
+real_model/*
+!real_model/README.md
+!real_model/benchmark_summary.json
+!real_model/run_rows.csv

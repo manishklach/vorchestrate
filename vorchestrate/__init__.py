@@ -11,11 +11,13 @@ from .core import (
     WeightStateMachine,
     state_label,
 )
+from .integrations.decoder_only import DecoderOnlyTransformerAdapter
 from .integrations.huggingface import HeuristicProfile, VOrchestrate
 
 __all__ = [
     "AccuracyGuardrail",
     "ControllerMetrics",
+    "DecoderOnlyTransformerAdapter",
     "HeuristicProfile",
     "PrefetchScheduler",
     "ScoringEngine",

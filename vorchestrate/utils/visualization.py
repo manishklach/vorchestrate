@@ -193,4 +193,6 @@ def _trace_event_from_row(row: dict[str, str]) -> TraceEvent:
         guardrail_veto=row["guardrail_veto"].strip().lower() == "true",
         bytes_moved=int(row["bytes_moved"]),
         hbm_pressure=float(row.get("hbm_pressure", "0.0")),
+        trace_origin=row.get("trace_origin", "synthetic_simulation"),
+        action_is_intent=row.get("action_is_intent", "false").strip().lower() == "true",
     )

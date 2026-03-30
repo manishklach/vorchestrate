@@ -24,6 +24,9 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.6",
 ]
+real-bench = [
+  "transformers>=4.40",
+]
 
 [project.urls]
 Homepage = "https://github.com/manishklach/vorchestrate"

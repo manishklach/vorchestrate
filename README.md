@@ -18,6 +18,7 @@ This repository is best read as a reference implementation of the controller arc
 
 - it demonstrates controller structure, residency metadata tracking, scoring logic, guardrails, state transitions, and orchestration scaffolding
 - it includes a controller simulation path that exercises the policy on synthetic block descriptors rather than implying broad real-model support
+- it now includes one narrow real-model validation path for a small decoder-only model so the controller can be inspected on a real forward pass
 - large-model validation and reproducible benchmarks are still in progress
 - the runnable examples are illustrative prototype paths, not end-to-end proof of production readiness
 
@@ -89,6 +90,7 @@ The controller currently reasons about a seven-state model:
 | Synthetic controller simulation | Present | Deterministic simulation uses structured synthetic block descriptors |
 | Trace writer | Present | JSON and CSV trace output for simulation runs |
 | Lightweight metrics container | Present | Counts promotions, demotions, prefetches, stages, and vetoes |
+| Narrow real-model validation path | Present | Small decoder-only benchmark path for `distilgpt2`-style validation |
 | Integration surface | Partial / illustrative | Adapter shape exists and the Hugging Face wrapper remains exploratory |
 | Reproducible benchmark suite | Planned | Methodology and scaffolding are in progress |
 
@@ -99,6 +101,7 @@ Some important pieces are still ahead of the current implementation:
 - there is no published large-model benchmark suite yet
 - there is no broad proof of quality parity yet
 - there is no universal Hugging Face support claim
+- the current real-model benchmark is intentionally narrow and limited to a small decoder-only validation path
 - current examples are intentionally small and inspectable
 - the current repository should be read as a serious prototype, not finished production infrastructure
 
@@ -125,6 +128,15 @@ To render simple plots from the synthetic trace output:
 ```bash
 python examples/render_trace_report.py
 ```
+
+For the first narrow real-model validation step:
+
+```bash
+pip install -e .[dev,real-bench]
+python benchmarks/real_model_benchmark.py --model-name distilgpt2
+```
+
+That path runs a real small-model forward pass, records observed runtime metrics, and emits controller-intended actions through the current prototype adapter and registry path.
 
 ## Visualizing Controller Behavior
 
@@ -213,16 +225,17 @@ tests                      pragmatic pytest coverage for core logic and prototyp
 
 ## Benchmarks
 
-The benchmark path is being built in a staged way, with synthetic traces first and real-model validation later.
+The benchmark path is being built in stages, with synthetic traces first and a narrow real-model validation path now available for a small decoder-only model.
 
 See [docs/benchmark_plan.md](docs/benchmark_plan.md) for the methodology and
 [docs/visualization.md](docs/visualization.md) for the synthetic reporting path.
+See [docs/real_model_validation.md](docs/real_model_validation.md) for the real-model validation scope and exact benchmark command.
 
 | Work Item | Status | Notes |
 |-----------|--------|-------|
 | Synthetic controller traces | Present | Deterministic simulation path is available |
 | Benchmark stub harness | Present | Writes synthetic artifacts under `benchmarks/results/` |
-| Small-model real integration benchmark | Planned | Intended next validation step |
+| Small-model real integration benchmark | Present | Narrow `distilgpt2`-style decoder-only validation path |
 | Larger-model memory and quality study | Planned | Not yet published |
 | Reproducible benchmark report | TBD | Depends on instrumentation and validation work |
 
@@ -240,7 +253,7 @@ The phased roadmap is described in [docs/roadmap.md](docs/roadmap.md).
 
 ## Project Trajectory
 
-Today the repository exposes controller logic, simulation, traces, and an early benchmark scaffold. The next step is adapter-backed experimentation and stronger instrumentation. The longer arc is toward validated runtime studies on real models, with more capable movement backends and clearer measurements of HBM pressure, latency, and quality tradeoffs.
+Today the repository exposes controller logic, simulation, traces, a narrow real-model benchmark, and an early benchmark scaffold. The next step is broader adapter-backed experimentation and stronger instrumentation. The longer arc is toward validated runtime studies on real models, with more capable movement backends and clearer measurements of HBM pressure, latency, and quality tradeoffs.
 
 ## Contributing
 

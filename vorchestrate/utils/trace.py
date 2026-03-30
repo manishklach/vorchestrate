@@ -25,6 +25,8 @@ class TraceEvent:
     guardrail_veto: bool
     bytes_moved: int
     hbm_pressure: float = 0.0
+    trace_origin: str = "synthetic_simulation"
+    action_is_intent: bool = False
 
     def to_dict(self) -> dict:
         """Return a JSON-serializable dictionary."""

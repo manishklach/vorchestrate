@@ -50,6 +50,20 @@ Runs the synthetic controller simulation and returns events, metrics, and score 
 
 Consumes a JSON or CSV synthetic trace and writes a compact visualization report with action counts, score trends, state timelines, and synthetic HBM pressure plots.
 
+## Real-Model Benchmark Surface
+
+### `DecoderOnlyTransformerAdapter`
+
+Narrow adapter for GPT-2 style decoder-only models used by the first real-model validation path. It discovers leaf modules, exposes residency-managed units, and registers them into the controller registry.
+
+### `RealModelBenchmarkConfig`
+
+Configuration object for the small-model validation benchmark.
+
+### `run_real_model_benchmark()`
+
+Runs a constrained real forward-pass benchmark, records observed runtime metrics, emits controller-intended actions, and writes report artifacts under `benchmarks/results/real_model/`.
+
 ## Integration Surface
 
 ### `ResidencyAdapter`

@@ -206,6 +206,7 @@ def run_controller_simulation(
                             guardrail_veto=False,
                             bytes_moved=0,
                             hbm_pressure=hbm_pressure,
+                            trace_origin="synthetic_simulation",
                         )
                     )
 
@@ -251,6 +252,7 @@ def run_controller_simulation(
                         guardrail_veto=guardrail_veto,
                         bytes_moved=bytes_moved,
                         hbm_pressure=hbm_pressure,
+                        trace_origin="synthetic_simulation",
                     )
                 )
 

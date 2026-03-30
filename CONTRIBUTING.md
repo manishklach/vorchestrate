@@ -11,6 +11,12 @@ pip install -e .[dev]
 python -m pytest -q
 ```
 
+For the narrow real-model benchmark path:
+
+```bash
+pip install -e .[dev,real-bench]
+```
+
 Common local commands:
 
 ```bash
@@ -18,8 +24,9 @@ make test
 make lint
 make typecheck
 make simulate
+make benchmark-real
 make benchmark-stub
-make render-trace-report
+make render-trace
 ```
 
 ## Guidelines

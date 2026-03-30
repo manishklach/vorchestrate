@@ -85,4 +85,6 @@ Only after the earlier phases are stable:
 
 ## Current State
 
-The current repository supports Phase A best. Phase B and Phase C define the near-term validation path.
+The current repository supports Phase A fully and now includes a first narrow Phase B path for a small decoder-only model. That real-model path is intentionally constrained: it validates instrumentation, controller-intended actions, and runtime reporting on a real forward pass without claiming general support or full tier-movement execution.
+
+See [real_model_validation.md](./real_model_validation.md) for the exact supported scope and command path.

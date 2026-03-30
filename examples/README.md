@@ -60,3 +60,5 @@ What you will learn from these plots:
 - how the synthetic HBM pressure signal relates to controller activity
 
 These figures are synthetic controller-simulation output. They are meant to make policy behavior easier to inspect, not to stand in for real-model telemetry or benchmark evidence.
+
+For the separate narrow real-model validation path, see `benchmarks/real_model_benchmark.py` and `docs/real_model_validation.md`.
