@@ -472,8 +472,11 @@ def _get_windows_process_memory_bytes() -> int | None:
 
     counters = ProcessMemoryCounters()
     counters.cb = ctypes.sizeof(ProcessMemoryCounters)
-    process = ctypes.windll.kernel32.GetCurrentProcess()
-    success = ctypes.windll.psapi.GetProcessMemoryInfo(
+    windll: Any = getattr(ctypes, "windll", None)
+    if windll is None:
+        return None
+    process = windll.kernel32.GetCurrentProcess()
+    success = windll.psapi.GetProcessMemoryInfo(
         process,
         ctypes.byref(counters),
         counters.cb,
